@@ -32,6 +32,9 @@ Typed word:
 
 Target word:
 - Unicode NFC normalize. Remove nukta (`़`).
+- Remove ZWJ (`U+200D`) and ZWNJ (`U+200C`). This is what makes the eyelash-ra
+  forms typeable: `गर्‍यो` is matched as `गर्यो` and types as `garyo`. Without it,
+  common past-tense verbs would be unmatchable.
 - Strip the same punctuation.
 - Devanagari digits `०-९` match ASCII digits `0-9`.
 - Every Latin alternative in the tables below is also consonant-collapsed (so `chh` effectively becomes `ch`).
@@ -76,6 +79,14 @@ Each consonant becomes a group of accepted spellings.
 | क्ष | ksh, kch, x, chh, ch |
 | ज्ञ | gy, gny, gn, jn |
 
+**Order within a group carries no meaning for matching** — the compiled pattern
+is an alternation, so `sh, s` and `s, sh` behave identically. It does matter for
+the keyboard hint, which follows the first spelling in the group, and a few
+first entries are not what a typist presses: this row merges श/ष/स, so स would
+hint `sh` (नमस्ते → "namashte"), and A5's ी starts `ee` (तिमी → "timee").
+`src/engine/hint.ts` keeps a small hint-only preference table for those cases.
+Reordering a group here to fix a hint is the wrong fix; it would change nothing.
+
 Deliberately **not** folded: aspirated vs unaspirated (`d`≠`dh`, `t`≠`th`, `b`≠`bh`). These are different sounds (दान vs धान). Common misspellings that cross this line go in the overrides table (A7), never into these rules.
 
 ### A4. What follows a consonant
@@ -102,13 +113,17 @@ The same groups apply to independent vowels and to matras.
 | ई / ी | ee, i, ii |
 | उ / ु | u, oo |
 | ऊ / ू | oo, u, uu |
-| ए / े | e, ai, ae |
+| ए / े | e, ai, ae, ei |
 | ऐ / ै | ai, e, ei, ae |
 | ओ / ो | o, au, ou |
 | औ / ौ | au, ou, o |
 | ऋ / ृ | ri, ru |
 
 Long/short pairs are folded on purpose: romanized typists don't distinguish them. `kam` is correct for both कम and काम. Because the target is always known, this never causes a wrong word to be accepted in test modes.
+
+`ei` is accepted for ए / े as well as ऐ / ै, because `garein` for गरें is common
+and the two vowels are already folded into each other in both directions. This
+covers the whole family: गरें, भनें, भएँ, आएँ.
 
 A word-initial independent vowel is **required** so `ma` does not match आमा.
 

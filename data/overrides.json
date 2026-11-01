@@ -1,4 +1,18 @@
 {
-  "धन्यवाद": ["danyabad", "danyavad", "dhanebad"],
-  "विद्यालय": ["vidhyalaya", "bidhyalaya", "vidhyalay", "bidhyalay"]
+  "धन्यवाद": [
+    "danyabad",
+    "danyavad",
+    "dhanebad"
+  ],
+  "विद्यालय": [
+    "vidhyalaya",
+    "bidhyalaya",
+    "vidhyalay",
+    "bidhyalay"
+  ],
+  "काठमाडौं": [
+    "kathmandu",
+    "kathmandau",
+    "kathmandoo"
+  ]
 }

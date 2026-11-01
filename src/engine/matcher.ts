@@ -115,7 +115,7 @@ export const INDEPENDENT_VOWELS: ReadonlyMap<string, readonly string[]> = new Ma
   ["ई", ["ee", "i", "ii"]],
   ["उ", ["u", "oo"]],
   ["ऊ", ["oo", "u", "uu"]],
-  ["ए", ["e", "ai", "ae"]],
+  ["ए", ["e", "ai", "ae", "ei"]],
   ["ऐ", ["ai", "e", "ei", "ae"]],
   ["ओ", ["o", "au", "ou"]],
   ["औ", ["au", "ou", "o"]],
@@ -131,7 +131,7 @@ export const MATRAS: ReadonlyMap<string, readonly string[]> = new Map([
   ["ु", ["u", "oo"]], // ु
   ["ू", ["oo", "u", "uu"]], // ू
   ["ृ", ["ri", "ru"]], // ृ
-  ["े", ["e", "ai", "ae"]], // े
+  ["े", ["e", "ai", "ae", "ei"]], // े
   ["ै", ["ai", "e", "ei", "ae"]], // ै
   ["ो", ["o", "au", "ou"]], // ो
   ["ौ", ["au", "ou", "o"]], // ौ

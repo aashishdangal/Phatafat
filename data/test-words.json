@@ -30,5 +30,11 @@
   {"target": "तिमी", "accept": ["timi", "timee", "teemi"], "reject": ["tami", "timo"]},
   {"target": "हजुर", "accept": ["hajur", "hazur"], "reject": ["hajar", "jur"]},
   {"target": "२०८३", "accept": ["2083"], "reject": ["2084", "208"]},
-  {"target": "विज्ञान", "accept": ["vigyan", "bigyan", "bigyaan", "vignan"], "reject": ["bigan", "vijan"]}
+  {"target": "विज्ञान", "accept": ["vigyan", "bigyan", "bigyaan", "vignan"], "reject": ["bigan", "vijan"]},
+  {"target": "गर्‍यो", "accept": ["garyo", "garyou"], "reject": ["garo", "garyi", "gayo"]},
+  {"target": "पुर्‍याउनु", "accept": ["puryaunu", "pooryaunu"], "reject": ["puraunu", "puryaunoox"]},
+  {"target": "भर्‍यो", "accept": ["bharyo"], "reject": ["baryo", "bharo"]},
+  {"target": "गरें", "accept": ["garen", "gare", "garein", "garain"], "reject": ["garin", "garun"]},
+  {"target": "भनें", "accept": ["bhanen", "bhane", "bhanein"], "reject": ["banen", "bhanin"]},
+  {"target": "काठमाडौं", "accept": ["kathmadau", "kathmadaun", "kathmado", "kathmandu", "kathmandau"], "reject": ["kathmadu", "kathmadi", "kathmando"]}
 ]
