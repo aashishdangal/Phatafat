@@ -27,7 +27,13 @@ Spelling variants of the same sounds pass. Missing, extra, or swapped sounds fai
 
 Typed word:
 - Lowercase everything. Case never matters in scoring.
-- Strip punctuation: `। ॥ | ? , ! . ; : " ' ( ) -`
+- Strip punctuation and the Part B sign keys: `। ॥ | ? , ! . ; : " ' ( ) - ^ \`
+  The sign keys are stripped because none of them carries information the
+  matcher uses: A6 makes nasals and visarga optional and A4 makes halant
+  contribute nothing. Without this, a user who deliberately types `^` for ँ
+  sees a preview identical to the target and still scores wrong. `M` and `H`
+  need no entry, since lowercasing turns them into `m` and `h`, which the ं
+  and ः groups already accept.
 - Collapse repeated **consonant** letters: `kamm → kam`, `chha → cha`, `pakka → paka`. Never collapse vowels (`aa`, `ee`, `oo` carry meaning).
 
 Target word:

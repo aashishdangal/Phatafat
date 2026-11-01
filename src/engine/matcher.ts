@@ -15,8 +15,19 @@ import overridesJson from "../../data/overrides.json";
  * A2 — normalization
  * ------------------------------------------------------------------ */
 
-/** Punctuation stripped from both sides before matching (A2, A8). */
-const PUNCTUATION = /[।॥|?,!.;:"'()\-]/g;
+/**
+ * Punctuation stripped from both sides before matching (A2, A8).
+ *
+ * Includes the Part B sign keys `^` (ँ) and `\` (halant). Without them a user
+ * who types the signs on purpose gets a preview that matches the target
+ * exactly and a word that scores wrong: `chaa^Dai` renders चाँडै, which *is*
+ * चाँडै, but the stray `^` breaks the pattern. Stripping them is right rather
+ * than merely convenient — A6 makes every nasal and visarga optional, and A4
+ * makes halant contribute nothing, so none of these marks carries information
+ * the matcher uses. (`M` and `H` need no entry: lowercasing turns them into
+ * `m` and `h`, which the ं and ः groups already accept.)
+ */
+const PUNCTUATION = /[।॥|?,!.;:"'()\-^\\]/g;
 
 /** Nukta, removed from the target after NFC (A2). */
 const NUKTA = /़/g;

@@ -6,14 +6,14 @@
   {"target": "आमा", "accept": ["aama", "ama", "aamaa"], "reject": ["ma"]},
   {"target": "छ", "accept": ["cha", "chha", "chh", "ch"], "reject": ["ja", "chi"]},
   {"target": "छैन", "accept": ["chhaina", "chaina", "chhena", "chena"], "reject": ["chhan", "chhina"]},
-  {"target": "तपाईं", "accept": ["tapai", "tapain", "tapaai", "tapaain", "tapaii"], "reject": ["tapa"]},
+  {"target": "तपाईं", "accept": ["tapai", "tapain", "tapaai", "tapaain", "tapaii", "tapaaIM", "tapai^"], "reject": ["tapa"]},
   {"target": "नमस्ते", "accept": ["namaste"], "reject": ["namaskar", "nameste"]},
   {"target": "धन्यवाद", "accept": ["dhanyabad", "dhanyavad", "dhanyabaad", "dhanybad", "danyabad"], "reject": ["dhanyab", "thanyabad"]},
   {"target": "विद्यालय", "accept": ["vidyalaya", "bidyalaya", "widyalaya", "vidyalay", "vidhyalaya"], "reject": ["vidyala", "vadyalaya"]},
   {"target": "शहर", "accept": ["sahar", "shahar", "sahr", "sahara"], "reject": ["hahar", "sahor"]},
   {"target": "राम्रो", "accept": ["ramro", "raamro"], "reject": ["ramo", "ramri"]},
   {"target": "गर्नु", "accept": ["garnu", "garnoo"], "reject": ["garna", "garni"]},
-  {"target": "गर्छन्", "accept": ["garchhan", "garchan", "garchhn"], "reject": ["garchhu", "garcha"]},
+  {"target": "गर्छन्", "accept": ["garchhan", "garchan", "garchhn", "garchhan\\", "garchan\\"], "reject": ["garchhu", "garcha"]},
   {"target": "पक्का", "accept": ["pakka", "paka"], "reject": ["pak", "pukka"]},
   {"target": "नेपाल", "accept": ["nepal", "Nepal", "naipal"], "reject": ["napal", "nepali"]},
   {"target": "संसार", "accept": ["sansar", "samsar", "sasar", "sansaar"], "reject": ["sansari", "sanar"]},
@@ -23,7 +23,7 @@
   {"target": "ऋषि", "accept": ["rishi", "rushi", "risi"], "reject": ["rsi", "rasi"]},
   {"target": "क्षेत्री", "accept": ["kshetri", "chhetri", "chetri", "xetri"], "reject": ["setri", "kshetra"]},
   {"target": "ज्ञान", "accept": ["gyan", "gyaan", "gnyan", "gnan"], "reject": ["jan", "gyani"]},
-  {"target": "चाँडै", "accept": ["chadai", "chaadai", "chandai", "chaandai"], "reject": ["chado", "chadi"]},
+  {"target": "चाँडै", "accept": ["chadai", "chaadai", "chandai", "chaandai", "chaa^dai", "chaa^Dai", "cha^dai"], "reject": ["chado", "chadi"]},
   {"target": "दिदी", "accept": ["didi", "deedee", "didii"], "reject": ["dida", "dadi"]},
   {"target": "भाइ", "accept": ["bhai", "bhaai"], "reject": ["bai", "bhau"]},
   {"target": "आउनु", "accept": ["aunu", "aaunu"], "reject": ["aanu", "unu"]},
@@ -39,5 +39,6 @@
   {"target": "काठमाडौं", "accept": ["kathmadau", "kathmadaun", "kathmado", "kathmandu", "kathmandau"], "reject": ["kathmadu", "kathmadi", "kathmando"]},
   {"target": "दुःख", "accept": ["dukh", "dukha", "dukkha", "duhkha"], "reject": ["dukhi", "dhukh"]},
   {"target": "प्रायः", "accept": ["praay", "praya", "prayah", "pray"], "reject": ["prayaha", "praye", "praayi"]},
-  {"target": "अङ्ग्रेजी", "accept": ["angreji", "anggreji", "angrejee"], "reject": ["agreji", "angrej"]}
+  {"target": "अङ्ग्रेजी", "accept": ["angreji", "anggreji", "angrejee"], "reject": ["agreji", "angrej"]},
+  {"target": "यहाँ", "accept": ["yaha", "yahan", "yahaa", "yahaa^", "yaham"], "reject": ["yaho", "yah"]}
 ]
