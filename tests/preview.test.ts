@@ -288,3 +288,38 @@ describe("preview — tokenizer (exposed for free mode)", () => {
     expect(tokenizeLatin("saM").map((t) => t.kind)).toEqual(["consonant", "vowel", "sign"]);
   });
 });
+
+/**
+ * B4: `nn` as a second way to write ँ.
+ *
+ * A bare `nn → ँ` would collide with the न्न geminate in very common verbs
+ * (सुन्नु, भन्नु, जान्नु), so the rule is conditional: `nn` is ँ only when no
+ * vowel follows it. A vowel after it means the user is writing न्न.
+ *
+ * Preview only. Scoring is untouched — A2 collapses doubled consonants and A6
+ * makes every nasal optional, so none of this reaches the matcher.
+ */
+describe("B4 — nn as chandrabindu", () => {
+  it("renders ँ when no vowel follows", () => {
+    expect(toDevanagari("yahaann")).toBe("यहाँ");
+    expect(toDevanagari("chaannDai")).toBe("चाँडै");
+    expect(toDevanagari("gaaunn")).toBe("गाउँ");
+  });
+
+  it("still renders the न्न geminate when a vowel follows", () => {
+    expect(toDevanagari("sunnu")).toBe("सुन्नु");
+    expect(toDevanagari("bhannu")).toBe("भन्नु");
+    expect(toDevanagari("jaannu")).toBe("जान्नु");
+    expect(toDevanagari("unnaais")).toBe("उन्नाइस");
+  });
+
+  it("leaves ^ working as before", () => {
+    expect(toDevanagari("yahaa^")).toBe("यहाँ");
+  });
+
+  it("does not disturb a single n", () => {
+    expect(toDevanagari("sundar")).toBe("सुन्दर");
+    expect(toDevanagari("nepaal")).toBe("नेपाल");
+    expect(toDevanagari("naya^")).toBe("नयँ");
+  });
+});

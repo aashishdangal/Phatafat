@@ -193,7 +193,22 @@ Capital `T D N Sh` are the only case-sensitive keys (retroflex). They matter onl
 
 ### B4. Signs (preview and free mode only, never required in tests)
 
-`M → ं · ^ → ँ · H → ः · \ → explicit halant (garchhan\ → गर्छन्)`
+`M → ं · ^ → ँ · nn → ँ · H → ः · \ → explicit halant (garchhan\ → गर्छन्)`
+
+`nn` is a second, easier-to-reach way to write ँ, but only when **no vowel
+follows it**. A vowel after the pair means the user is writing the न्न geminate,
+which appears in some of the most common verbs in the language:
+
+| typed | renders | why |
+|---|---|---|
+| `yahaann` | यहाँ | `nn` at the end of the buffer |
+| `chaannDai` | चाँडै | `nn` before a consonant |
+| `sunnu` | सुन्नु | vowel follows, so न्न |
+| `bhannu` | भन्नु | vowel follows, so न्न |
+
+This is a Part B rule, so it affects the preview and free mode only. Scoring is
+untouched: A2 collapses doubled consonants and A6 makes every nasal optional,
+so no nasal mark ever has to be typed in a test.
 
 ### B5. Punctuation and digits
 

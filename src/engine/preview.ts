@@ -136,6 +136,13 @@ const MAX_KEY_LENGTH = [...PREVIEW_KEYS.keys()].reduce(
   1,
 );
 
+/** The Latin letters that begin a Part B vowel key (B2), long forms included. */
+const VOWEL_START = new Set(["a", "e", "i", "o", "u", "A", "I", "U"]);
+
+function isVowelKey(ch: string | undefined): boolean {
+  return ch !== undefined && VOWEL_START.has(ch);
+}
+
 /**
  * Greedy longest-match tokenizer for a Latin buffer (Part B preamble).
  * Unmapped characters become `literal` tokens that pass through unchanged
@@ -148,6 +155,18 @@ export function tokenizeLatin(latin: string): PreviewToken[] {
   let i = 0;
 
   while (i < chars.length) {
+    // B4: `nn` is a second way to write ँ, easier to reach than `^`.
+    //
+    // It must not swallow the न्न geminate, which appears in some of the most
+    // common verbs in the language (सुन्नु, भन्नु, जान्नु). A vowel after the
+    // pair means the user is writing न्न, so `nn` is ँ only when no vowel
+    // follows it — including at the end of the buffer.
+    if (chars[i] === "n" && chars[i + 1] === "n" && !isVowelKey(chars[i + 2])) {
+      tokens.push({ kind: "sign", dev: "ँ", latin: "nn" });
+      i += 2;
+      continue;
+    }
+
     let matched = false;
     for (let len = Math.min(MAX_KEY_LENGTH, chars.length - i); len >= 1; len -= 1) {
       const slice = chars.slice(i, i + len).join("");
