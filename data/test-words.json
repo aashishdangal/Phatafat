@@ -54,5 +54,6 @@
   {"target": "गर्छौं", "accept": ["garchhaun", "garchhau", "garchaun"], "reject": ["garchhun", "garchhen"]},
   {"target": "श्रीमान्", "accept": ["shriman", "shrimaan", "sriman"], "reject": ["shrima", "shrimani"]},
   {"target": "सिन्धुपाल्चोक", "accept": ["sindhupalchok", "sindhupaalchok"], "reject": ["sindupalchok", "sindhupalchak"]},
-  {"target": "ओखलढुङ्गा", "accept": ["okhaldhunga", "okhaladhunggaa"], "reject": ["okhaldunga", "okhaldunga"]}
+  {"target": "ओखलढुङ्गा", "accept": ["okhaldhunga", "okhaladhunggaa"], "reject": ["okhaldunga", "okhaldunga"]},
+  {"target": "भएको", "accept": ["bhaeko", "bhaiko", "bhayeko", "bhayko"], "reject": ["bhako", "baeko", "bhaeka", "bhaeeko"]}
 ]
