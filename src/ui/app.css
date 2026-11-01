@@ -274,7 +274,12 @@
   display: flex;
   align-items: center;
   gap: 0.15em;
-  font-size: 0.44em;
+  /*
+   * Proportional to the word it sits under, but never below a readable size.
+   * The passage layout sets words as low as 1.1rem, where a bare 0.44em ghost
+   * came out around 0.7rem and was too small to read while typing.
+   */
+  font-size: max(0.95rem, 0.44em);
   font-weight: 600;
   line-height: 1.6;
   white-space: nowrap;
@@ -362,7 +367,7 @@
 
 .words--passage .wrap-words {
   column-gap: 0.42em;
-  row-gap: 0.95em;
+  row-gap: 1.35em; /* the floored ghost is taller relative to this type size */
 }
 
 .wrap-title {
