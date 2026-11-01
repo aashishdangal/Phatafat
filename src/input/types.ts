@@ -10,6 +10,25 @@
 export type InputMethodId = "romanized" | "preeti";
 
 /**
+ * The parts of a keystroke an input method needs.
+ *
+ * A structural subset of the DOM KeyboardEvent rather than the type itself, so
+ * that `input/` and `session/` stay free of DOM dependencies and can be unit
+ * tested in a node environment. A real KeyboardEvent satisfies this interface,
+ * so the UI passes one straight through.
+ */
+export interface KeyEvent {
+  /** The character or named key, e.g. "k", " ", "Backspace". */
+  key: string;
+  /** Physical key, e.g. "KeyK", "Space". Used for keyboard highlighting. */
+  code: string;
+  shiftKey: boolean;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+  altKey?: boolean;
+}
+
+/**
  * How a word ends.
  *   "word" — romanized: the buffer accumulates and commits on space.
  *   "key"  — Preeti: each keystroke is judged immediately, and the word
@@ -84,10 +103,18 @@ export interface InputMethod {
    */
   setTarget(target: string | null): void;
 
-  onKey(event: KeyboardEvent): InputUpdate;
+  onKey(event: KeyEvent): InputUpdate;
 
   /** Keys to highlight next. Empty when the mode offers no hint. */
   nextKeys(): KeyHint[];
+
+  /**
+   * Put text back in the buffer, for returning to a word that was scored
+   * wrong. Returns the resulting update so the session gets the re-rendered
+   * preview without knowing how this mode transliterates. Optional: a mode
+   * that cannot be re-entered simply omits it.
+   */
+  restore?(buffer: string): InputUpdate;
 
   /** Clear the buffer. Called on word commit and on restart. */
   reset(): void;
