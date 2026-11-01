@@ -52,9 +52,10 @@ export const ne = {
 
   // Layout variants (the open question — three word-area layouts)
   layout: "बान्की",
-  layoutWrapped: "पङ्क्तिबद्ध",
+  layoutWrapped: "पङ्क्ति",
   layoutFocus: "एक हरफ",
   layoutPassage: "अनुच्छेद",
+  layoutPassageHint: "लोक सेवा अभ्यास — पूरा अनुच्छेद",
 
   // Live instrument
   remainingTime: "बाँकी समय",

@@ -137,11 +137,6 @@
   transition-timing-function: var(--ease);
 }
 
-.pill--digit {
-  min-width: 2rem;
-  font-family: var(--font-deva);
-}
-
 .pill[aria-pressed="true"] {
   color: var(--accent);
   background: var(--crimson-wash);

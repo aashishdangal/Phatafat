@@ -68,15 +68,20 @@ export class ControlBar {
       lengthGroup.append(button);
     }
 
+    // The layouts are a permanent, named choice rather than a chooser: wrapped
+    // lines is the default, and the passage layout is what Lok Sewa practice
+    // actually looks like, so both earn a real label instead of a digit.
     const variantGroup = el("div", { class: "group", role: "group", "aria-label": ne.layout });
-    const variantLabels: [LayoutVariant, string, string][] = [
-      ["wrapped", "१", ne.layoutWrapped],
-      ["focus", "२", ne.layoutFocus],
-      ["passage", "३", ne.layoutPassage],
+    const variantLabels: [LayoutVariant, string, string | undefined][] = [
+      ["wrapped", ne.layoutWrapped, undefined],
+      ["focus", ne.layoutFocus, undefined],
+      ["passage", ne.layoutPassage, ne.layoutPassageHint],
     ];
-    for (const [variant, digit, label] of variantLabels) {
-      const button = pill(digit, { "aria-label": `${ne.layout}: ${label}`, title: label });
-      button.classList.add("pill--digit");
+    for (const [variant, label, hint] of variantLabels) {
+      const button = pill(label, {
+        "aria-label": `${ne.layout}: ${label}`,
+        title: hint ?? label,
+      });
       button.addEventListener("click", () => handlers.onVariant(variant));
       this.variantPills.set(variant, button);
       variantGroup.append(button);
