@@ -154,6 +154,24 @@ export const MATRAS: ReadonlyMap<string, readonly string[]> = new Map([
 
 const HALANT = "्";
 
+/**
+ * A5: the vowels that may be preceded by an optional glide `y`.
+ *
+ * Nepali typists insert a y before ए/ऐ whenever it follows a vowel or a bare
+ * consonant: भएको as `bhayeko`, आएको as `aayeko`, दिएको as `diyeko`, खाएर as
+ * `khayera`, थिएन as `thiyena`. This is a pattern across the language, not a
+ * handful of words, so it belongs in the rules rather than in 45 overrides.
+ *
+ * It cannot cause a wrong word to be accepted in a test mode, because the
+ * target is always known: the glide only widens what counts as *this* word.
+ */
+const GLIDE_VOWELS = new Set(["ए", "ऐ", "े", "ै"]);
+
+/** Optional glide prefix for the vowels in GLIDE_VOWELS (A5). */
+function glide(ch: string): string {
+  return GLIDE_VOWELS.has(ch) ? "y?" : "";
+}
+
 /* ------------------------------------------------------------------ *
  * A6 — nasals and visarga (all optional)
  * ------------------------------------------------------------------ */
@@ -217,8 +235,9 @@ export function compileTargetSource(normalizedTarget: string): string {
   const consonantTail = (): void => {
     const next = chars[i];
     if (next !== undefined && MATRAS.has(next)) {
-      // Followed by a matra: that matra's group, required.
-      out += group(MATRAS.get(next) ?? []);
+      // Followed by a matra: that matra's group, required, after the optional
+      // glide where A5 allows one.
+      out += glide(next) + group(MATRAS.get(next) ?? []);
       i += 1;
       return;
     }
@@ -265,8 +284,8 @@ export function compileTargetSource(normalizedTarget: string): string {
 
     const vowel = INDEPENDENT_VOWELS.get(ch);
     if (vowel !== undefined) {
-      // A5: an independent vowel is always required.
-      out += group(vowel);
+      // A5: an independent vowel is always required, after the optional glide.
+      out += glide(ch) + group(vowel);
       i += 1;
       continue;
     }

@@ -127,6 +127,15 @@ The same groups apply to independent vowels and to matras.
 
 Long/short pairs are folded on purpose: romanized typists don't distinguish them. `kam` is correct for both कम and काम. Because the target is always known, this never causes a wrong word to be accepted in test modes.
 
+**Optional glide `y`:** an optional `y` may precede ए / े and ऐ / ै. Nepali
+typists insert one whenever that vowel follows a vowel or a bare consonant, and
+it is a pattern across the language rather than a handful of words: भएको as
+`bhayeko`, आएको as `aayeko`, दिएको as `diyeko`, बनाएको as `banayeko`, खाएर as
+`khayera`, थिएन as `thiyena`. It cannot cause a wrong word to be accepted in a
+test mode, because the target is always known — the glide only widens what
+counts as *this* word. It does mean `myero` is accepted for मेरो; that is the
+price, and it is paid only against a target that is already मेरो.
+
 `ei` is accepted for ए / े as well as ऐ / ै, because `garein` for गरें is common
 and the two vowels are already folded into each other in both directions. This
 covers the whole family: गरें, भनें, भएँ, आएँ.
