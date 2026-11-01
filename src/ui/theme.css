@@ -48,7 +48,7 @@
   --info: var(--blue);
   --word-pending: var(--fg-faint);
   --word-active: var(--fg);
-  --word-correct: var(--fg-muted);
+  --word-correct: var(--fg); /* a committed correct word reads as plain text */
   --word-wrong: var(--crimson);
   --caret: var(--crimson);
 

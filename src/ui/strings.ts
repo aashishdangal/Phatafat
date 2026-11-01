@@ -50,6 +50,35 @@ export const ne = {
   notInDictionary: "शब्दकोशमा छैन",
   didYouMean: "यो भन्नु भएको?",
 
+  // Layout variants (the open question — three word-area layouts)
+  layout: "बान्की",
+  layoutWrapped: "पङ्क्तिबद्ध",
+  layoutFocus: "एक हरफ",
+  layoutPassage: "अनुच्छेद",
+
+  // Live instrument
+  remainingTime: "बाँकी समय",
+  remainingWords: "बाँकी शब्द",
+  typingArea: "टाइप गर्ने क्षेत्र",
+  typingAreaHint: "यहाँ टाइप गर्नुहोस्। Tab वा Esc थिचेर पुनः सुरु हुन्छ।",
+  progressLabel: "प्रगति",
+  tapToType: "टाइप गर्न यहाँ थिच्नुहोस्",
+
+  // Results extras
+  reportCard: "नतिजा पत्र",
+  speedOverTime: "गतिको रेखा",
+  wrongWordsTitle: "गलत शब्दहरू",
+  expected: "सही",
+  typedAs: "तपाईंले टाइप गर्नुभयो",
+  noWrongWords: "एउटै गल्ती भएन।",
+  share: "सेयर",
+  copied: "कपी भयो",
+  shareLine: "मैले {wpm} WPM टाइप गरें — तपाईं कति फटाफट?",
+  minuteShort: "मि.",
+  secondShort: "से.",
+  wordsShort: "शब्द",
+  comingSoon: "छिट्टै आउँदैछ",
+
   // Settings
   skin: "रूप",
   skinAlive: "जीवन्त",

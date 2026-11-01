@@ -1,0 +1,1006 @@
+/*
+ * Phatafat interface styles.
+ *
+ * Everything colour comes from theme.css tokens. The one addition is --good,
+ * below, because the brief asks for a green press flash on the keyboard and
+ * the token set has no green (it is the flag palette: crimson and blue only).
+ * It is declared once, with a value per skin and theme, and used nowhere else.
+ *
+ * Motion rules followed throughout: named transition properties, 150ms for
+ * high-frequency feedback, cubic-bezier(0.2, 0, 0, 1) via --ease, every
+ * movement / scale / blur gated on prefers-reduced-motion, and a static cue
+ * (colour, border, underline or label) beside every animated state change.
+ */
+
+:root {
+  --good: #2f9e5e;
+  --good-wash: rgb(47 158 94 / 0.16);
+  --kb-unit: 2.6rem;
+}
+
+:root[data-skin="serious"] {
+  --good: #2a7c4c;
+}
+
+:root[data-theme="light"] {
+  --good: #1d7a47;
+  --good-wash: rgb(29 122 71 / 0.12);
+}
+
+/* Theme / skin swap: kill every transition for one frame so the colours do
+   not all animate at once (better-ui). */
+:root.no-transitions *,
+:root.no-transitions *::before,
+:root.no-transitions *::after {
+  transition: none !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Shell
+ * ------------------------------------------------------------------ */
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  max-width: 68rem;
+  margin-inline: auto;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-8);
+  padding-block: var(--sp-6) var(--sp-12);
+}
+
+/* ------------------------------------------------------------------ *
+ * Header
+ * ------------------------------------------------------------------ */
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3) var(--sp-6);
+  padding-block: var(--sp-4);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.brand-name {
+  font-family: var(--font-deva);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+
+.brand-name::first-letter {
+  color: var(--accent);
+}
+
+.brand-tag {
+  font-size: var(--text-xs);
+  color: var(--fg-faint);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  transition-property: opacity;
+  transition-duration: var(--dur-slow);
+  transition-timing-function: var(--ease);
+}
+
+/* Fades out while typing, back when the test stops. Opacity only: the row
+   keeps its space, so nothing on the page moves. */
+.controls.is-dimmed {
+  opacity: 0.18;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.group--tools {
+  gap: var(--sp-2);
+}
+
+.group-label {
+  font-size: var(--text-xs);
+  color: var(--fg-ghost);
+  padding-inline: var(--sp-2) var(--sp-1);
+}
+
+.pill {
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+  color: var(--fg-faint);
+  background: transparent;
+  transition-property: color, background-color, border-color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease);
+}
+
+.pill--digit {
+  min-width: 2rem;
+  font-family: var(--font-deva);
+}
+
+.pill[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--crimson-wash);
+  border-color: var(--crimson-dim);
+}
+
+.pill:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .pill:not(:disabled):hover {
+    color: var(--fg);
+    background: var(--surface);
+  }
+
+  .pill[aria-pressed="true"]:not(:disabled):hover {
+    color: var(--accent);
+    background: var(--crimson-wash);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Typing stage
+ * ------------------------------------------------------------------ */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.stage-type {
+  position: relative;
+  border-radius: var(--radius-card);
+  outline: 1px dashed transparent;
+  outline-offset: var(--sp-4);
+  transition-property: outline-color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease);
+}
+
+/* The typing surface is a real (transparent) input so touch keyboards come
+   up. Unfocused, it advertises itself with a dashed edge and the hint line;
+   focused, the caret under the current word is the focus indicator. */
+.stage-type:not(:focus-within) {
+  outline-color: var(--line-strong);
+}
+
+.typebox {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 1rem; /* >=16px keeps iOS from zooming on focus */
+  z-index: 2;
+}
+
+.typebox:focus {
+  outline: none;
+}
+
+.hint {
+  margin: 0;
+  min-height: 1.5em;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--fg-faint);
+  transition-property: opacity;
+  transition-duration: var(--dur-slow);
+  transition-timing-function: var(--ease);
+}
+
+/* ------------------------------------------------------------------ *
+ * Words — shared by all three layouts
+ * ------------------------------------------------------------------ */
+
+.words {
+  font-family: var(--font-deva);
+  font-weight: 700;
+  line-height: 1.5; /* room for matras above and reph below */
+}
+
+.w {
+  position: relative;
+  color: var(--word-pending);
+  transition-property: color, opacity;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease);
+}
+
+.w.is-correct {
+  color: var(--word-correct);
+}
+
+/* Wrong words keep showing the target, in crimson, with a wavy underline so
+   the state is not carried by colour alone. */
+.w.is-wrong {
+  color: var(--error);
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
+
+.w.is-active {
+  color: var(--word-active);
+}
+
+.w.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.1em;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* The ghost: live Devanagari preview under the current word, caret at its
+   end, raw Latin kept small and dim behind it. Absolutely positioned, so it
+   can never push the word list around. */
+.ghost {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.15em;
+  font-size: 0.44em;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  color: var(--fg-muted);
+  pointer-events: none;
+}
+
+.ghost-latin {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  letter-spacing: 0.04em;
+  color: var(--fg-ghost);
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  border-radius: 1px;
+  background: var(--caret);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .caret {
+    animation: caret-blink 1.05s steps(1, end) infinite;
+  }
+
+  /* Still while keys are arriving, the way a text cursor behaves. */
+  .caret.is-still {
+    animation: none;
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Variant 1 — wrapped lines, and variant 3 — passage block
+ * ------------------------------------------------------------------ */
+
+.wrap-viewport {
+  position: relative;
+  overflow: hidden;
+}
+
+.wrap-track {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wrap-track {
+    transition-property: transform;
+    transition-duration: var(--dur-slow);
+    transition-timing-function: var(--ease);
+  }
+}
+
+.wrap-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  column-gap: 0.5em;
+  row-gap: 1.1em; /* the ghost line lives in this gap */
+}
+
+.words--wrapped {
+  font-size: clamp(1.5rem, 5.4vw, var(--text-2xl));
+}
+
+.words--passage {
+  font-size: clamp(1.1rem, 3.6vw, 1.65rem);
+  padding: var(--sp-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--bg-raised);
+}
+
+.words--passage .wrap-words {
+  column-gap: 0.42em;
+  row-gap: 0.95em;
+}
+
+.wrap-title {
+  margin: 0 0 var(--sp-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--fg-faint);
+}
+
+/* ------------------------------------------------------------------ *
+ * Variant 2 — single focus line
+ * ------------------------------------------------------------------ */
+
+.words--focus {
+  font-size: clamp(1.7rem, 7vw, var(--text-3xl));
+}
+
+.focus-viewport {
+  position: relative;
+  overflow: hidden;
+  padding-block: 0.1em 0.75em; /* room for the ghost under the centre word */
+}
+
+.focus-track {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  width: max-content;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .focus-track {
+    transition-property: transform;
+    transition-duration: var(--dur-slow);
+    transition-timing-function: var(--ease);
+  }
+}
+
+/* Brightness falls away from the centre in four steps. */
+.words--focus .w {
+  opacity: 0.12;
+}
+
+.words--focus .w.d1 {
+  opacity: 0.48;
+}
+.words--focus .w.d2 {
+  opacity: 0.32;
+}
+.words--focus .w.d3 {
+  opacity: 0.22;
+}
+.words--focus .w.d4 {
+  opacity: 0.16;
+}
+
+.words--focus .w.is-active {
+  opacity: 1;
+}
+
+/* Scale, never font-size: growing the centre word must not move anything
+   else, or the measured word centres would go stale. */
+@media (prefers-reduced-motion: no-preference) {
+  .words--focus .w {
+    transition-property: color, opacity, scale;
+    transition-duration: var(--dur-slow);
+    transition-timing-function: var(--ease);
+  }
+
+  .words--focus .w.is-active {
+    scale: 1.1;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Progress bar — length and speed in one instrument
+ * ------------------------------------------------------------------ */
+
+.pb {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.pb-track {
+  position: relative;
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.pb-fill,
+.pb-hot {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  border-radius: inherit;
+  will-change: transform;
+}
+
+.pb-fill {
+  background: var(--blue);
+}
+
+/* The heat layer: crossfaded over the cool fill as the user speeds up, so the
+   bar reads blue when slow and crimson when fast. Progress itself is the fill
+   length and the number beside it, which stay legible without any colour. */
+.pb-hot {
+  background: var(--crimson);
+  opacity: 0;
+  box-shadow: var(--glow-accent);
+  transition-property: opacity;
+  transition-duration: var(--dur-slow);
+  transition-timing-function: var(--ease);
+}
+
+.pb-notches {
+  position: absolute;
+  inset: 0;
+}
+
+/* A wrong word leaves a mark at the point in the run where it happened. */
+.pb-notch {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--crimson-hi);
+}
+
+.pb-label {
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+  min-width: 4ch;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ *
+ * Keyboard preview
+ * ------------------------------------------------------------------ */
+
+.kb-host {
+  display: flex;
+  justify-content: center;
+}
+
+/* The class rule above would otherwise beat the UA's [hidden] rule. */
+.kb-host[hidden] {
+  display: none;
+}
+
+.kb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.kb-row {
+  display: flex;
+  gap: 5px;
+}
+
+.kb-key {
+  --kb-span: 1;
+  position: relative;
+  width: calc(var(--kb-span) * var(--kb-unit));
+  height: var(--kb-unit);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border-radius: var(--radius-key);
+  border: 1px solid transparent;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease);
+}
+
+.kb-key--space {
+  width: calc(var(--kb-span) * var(--kb-unit));
+}
+
+.kb-key--mod {
+  width: calc(2.2 * var(--kb-unit));
+}
+
+.kb-sub {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  line-height: 1;
+  color: var(--fg-faint);
+}
+
+.kb-glyph {
+  font-family: var(--font-deva);
+  font-size: 0.95rem;
+  line-height: 1.25;
+  color: var(--fg-muted);
+  transition-property: color;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: var(--ease);
+}
+
+.kb-shift-glyph {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-family: var(--font-deva);
+  font-size: 0.6rem;
+  line-height: 1;
+  color: var(--fg-ghost);
+}
+
+/* Next key: border and glyph colour, so the hint is not motion-only. */
+.kb-key.is-next {
+  background: var(--surface-hi);
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+.kb-key.is-next .kb-glyph {
+  color: var(--accent);
+}
+
+.kb-key.is-next .kb-sub {
+  color: var(--fg);
+}
+
+.kb-key.is-good {
+  background: var(--good-wash);
+  border-color: var(--good);
+}
+
+.kb-key.is-bad {
+  background: var(--error-wash);
+  border-color: var(--error);
+}
+
+.kb-key.is-hit {
+  background: var(--surface-hi);
+  border-color: var(--line-strong);
+}
+
+/* ------------------------------------------------------------------ *
+ * Results — exam-style report card
+ * ------------------------------------------------------------------ */
+
+.results-host {
+  max-height: calc(100dvh - 9rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.results-host:empty {
+  display: none;
+}
+
+#app.is-finished .stage,
+#app.is-finished .kb-host,
+#app.is-finished .hint {
+  display: none;
+}
+
+.report-card {
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: var(--sp-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-float);
+}
+
+.rc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.rc-stamp {
+  font-family: var(--font-deva);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.rc-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+}
+
+.rc-bigs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-block: var(--sp-6);
+}
+
+.rc-big {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-inline: var(--sp-3);
+}
+
+.rc-big + .rc-big {
+  border-left: 1px solid var(--line);
+}
+
+.rc-big-value {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.rc-big + .rc-big .rc-big-value {
+  color: var(--fg);
+}
+
+.rc-big-label {
+  font-size: var(--text-sm);
+  color: var(--fg);
+}
+
+.rc-big-unit {
+  font-size: var(--text-xs);
+  color: var(--fg-faint);
+}
+
+.rc-rows {
+  display: grid;
+  margin: 0;
+}
+
+.rc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-block: var(--sp-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.rc-row-label {
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}
+
+.rc-row-value {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.rc-chart {
+  margin: var(--sp-6) 0 0;
+}
+
+.rc-chart-label {
+  font-size: var(--text-xs);
+  color: var(--fg-faint);
+  margin-bottom: var(--sp-2);
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-axis {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-area {
+  fill: var(--crimson-wash);
+  stroke: none;
+}
+
+.chart-dot {
+  fill: var(--accent);
+}
+
+.chart-peak {
+  fill: var(--fg-faint);
+  font-family: var(--font-deva);
+  font-size: 9px;
+}
+
+.rc-wrong-section {
+  margin-top: var(--sp-6);
+}
+
+.rc-sub {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.rc-clean {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--fg-faint);
+}
+
+.rc-wrongs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rc-wrong {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-inner);
+  background: var(--surface);
+}
+
+.rc-wrong-target {
+  font-family: var(--font-deva);
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.rc-wrong-typed {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--error);
+  text-decoration-line: line-through;
+}
+
+.rc-share {
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.rc-share-line {
+  margin: 0 0 var(--sp-4);
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}
+
+.rc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-inner);
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+  transition-property: background-color, border-color, color, scale;
+  transition-duration: var(--dur-fast);
+  transition-timing-function: ease-out;
+}
+
+.btn--primary {
+  background: var(--crimson-wash);
+  border-color: var(--crimson-dim);
+  color: var(--accent);
+}
+
+.btn--ghost {
+  border-color: var(--line);
+  color: var(--fg-muted);
+}
+
+.btn-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: var(--radius-key);
+  border: 1px solid var(--crimson-dim);
+  color: var(--fg-muted);
+}
+
+@media (hover: hover) {
+  .btn--primary:hover {
+    background: var(--crimson-wash);
+    border-color: var(--accent);
+  }
+
+  .btn--ghost:hover {
+    border-color: var(--line-strong);
+    color: var(--fg);
+  }
+}
+
+/* Staged entrance for the card — the one infrequent moment that earns it. */
+.rc-stage {
+  opacity: 0;
+  transition-property: opacity;
+  transition-duration: var(--dur-slow);
+  transition-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rc-stage {
+    translate: 0 12px;
+    filter: blur(4px);
+    transition-property: opacity, translate, filter;
+  }
+}
+
+.report-card.is-in .rc-stage {
+  opacity: 1;
+  translate: 0 0;
+  filter: blur(0);
+}
+
+.rc-stage[data-stage="1"] {
+  transition-delay: 100ms;
+}
+.rc-stage[data-stage="2"] {
+  transition-delay: 200ms;
+}
+.rc-stage[data-stage="3"] {
+  transition-delay: 300ms;
+}
+.rc-stage[data-stage="4"] {
+  transition-delay: 400ms;
+}
+.rc-stage[data-stage="5"] {
+  transition-delay: 500ms;
+}
+
+/* ------------------------------------------------------------------ *
+ * Narrow screens
+ * ------------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  :root {
+    --kb-unit: 2.1rem;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --kb-unit: 1.8rem;
+  }
+
+  .kb-glyph {
+    font-size: 0.8rem;
+  }
+}
+
+/* The keyboard preview is a desktop affordance: on a phone the user's hands
+   are on the screen, not on a keyboard it could mirror. */
+@media (max-width: 639.98px) {
+  .kb-host {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-tag {
+    display: none;
+  }
+
+  .top {
+    padding-block: var(--sp-3);
+  }
+
+  .main {
+    gap: var(--sp-6);
+    padding-block: var(--sp-4) var(--sp-8);
+  }
+
+  .controls {
+    gap: var(--sp-1) var(--sp-3);
+    font-size: var(--text-xs);
+  }
+
+  .group-label {
+    padding-inline: var(--sp-1) 0;
+  }
+
+  .pill {
+    padding: 0.2rem 0.45rem;
+  }
+
+  .words--passage {
+    padding: var(--sp-4);
+  }
+
+  .report-card {
+    padding: var(--sp-4);
+  }
+
+  .rc-big-value {
+    font-size: var(--text-2xl);
+  }
+}
