@@ -527,16 +527,45 @@
   display: none;
 }
 
+/*
+ * The keyboard reads as a physical keyboard, not a grid of tiles: a chassis
+ * around the caps, ANSI row stagger, and caps with a lower edge so they look
+ * pressable. Outer radius = inner radius + padding (better-ui concentricity):
+ * 6px cap radius + 7px chassis padding = 13px chassis radius.
+ */
 .kb {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 5px;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 7px;
+  border-radius: 13px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-float);
 }
 
 .kb-row {
   display: flex;
-  gap: 5px;
+  gap: 4px;
+}
+
+/*
+ * Row stagger. A real QWERTY board offsets each row by a fraction of a key;
+ * these are the ANSI offsets minus the Tab/Caps keys we do not draw, so the
+ * silhouette still reads right.
+ */
+.kb-row[data-row="1"] {
+  margin-left: calc(0.3 * var(--kb-unit));
+}
+
+.kb-row[data-row="2"] {
+  margin-left: calc(0.55 * var(--kb-unit));
+}
+
+.kb-row[data-row="4"] {
+  align-self: center;
+  margin-left: 0;
 }
 
 .kb-key {
@@ -550,10 +579,12 @@
   justify-content: center;
   gap: 1px;
   border-radius: var(--radius-key);
-  border: 1px solid transparent;
-  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-bottom-color: var(--line-strong);
+  background: linear-gradient(var(--surface-hi), var(--surface));
   box-shadow: var(--shadow-raised);
-  transition-property: background-color, border-color, box-shadow;
+  transition-property: background-color, border-color, box-shadow, translate;
   transition-duration: var(--dur-fast);
   transition-timing-function: var(--ease);
 }
@@ -563,7 +594,17 @@
 }
 
 .kb-key--mod {
-  width: calc(2.2 * var(--kb-unit));
+  width: calc(1.4 * var(--kb-unit));
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 0 0 3px 6px;
+}
+
+/* A pressed cap travels down, the way a real key does. */
+@media (prefers-reduced-motion: no-preference) {
+  .kb-key.is-hit {
+    translate: 0 1px;
+  }
 }
 
 .kb-sub {

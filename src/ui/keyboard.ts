@@ -23,10 +23,10 @@ export class KeyboardView {
   private readonly flashTimers = new Map<HTMLElement, number>();
 
   constructor(layout: KeyboardLayout) {
-    const rows = layout.rows.map((row) =>
+    const rows = layout.rows.map((row, rowIndex) =>
       el(
         "div",
-        { class: "kb-row" },
+        { class: "kb-row", "data-row": String(rowIndex) },
         row.map((cap) => {
           const node = el("div", {
             class: `kb-key${cap.code === "Space" ? " kb-key--space" : ""}`,
@@ -46,12 +46,14 @@ export class KeyboardView {
     );
 
     // Shift sits outside the data layout: it is a modifier the hint may ask
-    // for (Preeti needs it constantly), not a glyph-producing cap.
-    const shiftRow = el("div", { class: "kb-row kb-row--mods" }, [
-      this.makeShift("ShiftLeft"),
-      this.makeShift("ShiftRight"),
-    ]);
-    rows.splice(rows.length - 1, 0, shiftRow);
+    // for (Preeti needs it constantly), not a glyph-producing cap. It goes
+    // where it belongs physically — either end of the bottom letter row — so
+    // the preview reads as a keyboard rather than as a grid of tiles.
+    const bottomRow = rows.find((row) => row.querySelector('[data-code="KeyZ"]') !== null);
+    if (bottomRow !== undefined) {
+      bottomRow.prepend(this.makeShift("ShiftLeft"));
+      bottomRow.append(this.makeShift("ShiftRight"));
+    }
 
     this.el = el("div", { class: "kb", "data-layout": layout.id }, rows);
   }

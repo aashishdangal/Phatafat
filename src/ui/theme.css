@@ -32,11 +32,15 @@
   --fg-faint: #6b6066;
   --fg-ghost: #453d42;
 
-  /* Nepali flag palette */
-  --crimson: #dc143c;
-  --crimson-hi: #ff2d55;
-  --crimson-dim: #8e1028;
-  --crimson-wash: rgb(220 20 60 / 0.12);
+  /* Nepali flag palette.
+   *
+   * Not CSS `crimson` (#dc143c): with a blue channel of 60 it reads rosy on a
+   * dark ground. This is a deeper flag red — less blue, so it reads as red
+   * rather than pink, and it holds up next to the flag blue. */
+  --crimson: #c8102e;
+  --crimson-hi: #e81838;
+  --crimson-dim: #7a0a1c;
+  --crimson-wash: rgb(200 16 46 / 0.13);
   --blue: #4477d8;
   --blue-dim: #2b4a86;
   --blue-wash: rgb(68 119 216 / 0.12);
@@ -82,7 +86,7 @@
 
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.25);
   --shadow-float: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
-  --glow-accent: 0 0 20px rgb(220 20 60 / 0.35);
+  --glow-accent: 0 0 20px rgb(200 16 46 / 0.38);
 
   /* Motion */
   --ease: cubic-bezier(0.2, 0, 0, 1);
@@ -99,8 +103,8 @@
   --shadow-raised: none;
   --shadow-float: 0 1px 3px rgb(0 0 0 / 0.5);
   --word-pending: #6f656b;
-  --accent: #b5173a;
-  --error: #b5173a;
+  --accent: #a50d26;
+  --error: #a50d26;
   --caret: var(--fg-muted);
 }
 
@@ -119,17 +123,17 @@
   --fg-faint: #8d8288;
   --fg-ghost: #bfb5bb;
 
-  --crimson: #c2102f;
-  --crimson-hi: #dc143c;
-  --crimson-dim: #f0b9c5;
-  --crimson-wash: rgb(194 16 47 / 0.1);
+  --crimson: #ad0c25;
+  --crimson-hi: #c8102e;
+  --crimson-dim: #eeb5bf;
+  --crimson-wash: rgb(173 12 37 / 0.1);
   --blue: #003893;
   --blue-dim: #9fb4dd;
   --blue-wash: rgb(0 56 147 / 0.09);
 
   --shadow-raised: 0 1px 2px rgb(23 19 21 / 0.08), 0 2px 8px rgb(23 19 21 / 0.06);
   --shadow-float: 0 2px 4px rgb(23 19 21 / 0.1), 0 8px 24px rgb(23 19 21 / 0.1);
-  --glow-accent: 0 0 20px rgb(194 16 47 / 0.2);
+  --glow-accent: 0 0 20px rgb(173 12 37 / 0.2);
 }
 
 /* Reset */

@@ -1,6 +1,10 @@
 /**
  * Romanized keyboard layout — QWERTY positions, dual-labelled.
  *
+ * Rows are given in physical order (digits, qwerty, home, bottom, space) so
+ * the renderer can stagger them like a real keyboard. Shift is added by the
+ * renderer, not listed here: it is a modifier, not a glyph-producing cap.
+ *
  * `sub` is the Latin letter printed on the user's real keyboard; `label` is
  * the Devanagari it transliterates to under rules.md B1/B2, and `shiftLabel`
  * is what Shift produces where Part B defines a capital key (the retroflex
@@ -15,6 +19,20 @@ import type { KeyboardLayout } from "../types";
 export const romanizedLayout: KeyboardLayout = {
   id: "romanized-qwerty",
   rows: [
+    [
+      { code: "Digit1", sub: "1", label: "१" },
+      { code: "Digit2", sub: "2", label: "२" },
+      { code: "Digit3", sub: "3", label: "३" },
+      { code: "Digit4", sub: "4", label: "४" },
+      { code: "Digit5", sub: "5", label: "५" },
+      // Shift+6 is `^`, the chandrabindu key (rules.md B4). Nasal marks are
+      // never required for scoring (A6), but free typing needs a way in.
+      { code: "Digit6", sub: "6", label: "६", shiftLabel: "ँ" },
+      { code: "Digit7", sub: "7", label: "७" },
+      { code: "Digit8", sub: "8", label: "८" },
+      { code: "Digit9", sub: "9", label: "९" },
+      { code: "Digit0", sub: "0", label: "०" },
+    ],
     [
       { code: "KeyQ", sub: "q", label: "क" },
       { code: "KeyW", sub: "w", label: "व" },
@@ -37,6 +55,7 @@ export const romanizedLayout: KeyboardLayout = {
       { code: "KeyJ", sub: "j", label: "ज" },
       { code: "KeyK", sub: "k", label: "क" },
       { code: "KeyL", sub: "l", label: "ल" },
+      { code: "Backslash", sub: "\\", label: "्" },
     ],
     [
       { code: "KeyZ", sub: "z", label: "ज" },
