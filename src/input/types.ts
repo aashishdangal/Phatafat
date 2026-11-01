@@ -41,8 +41,19 @@ export interface InputUpdate {
 export interface KeyCap {
   /** KeyboardEvent.code, e.g. "KeyA", "Space", "Semicolon". */
   code: string;
-  /** What the unshifted key produces, as shown on the cap. */
+  /**
+   * The glyph this key produces, shown large on the cap. Devanagari in both
+   * modes: the character the key types in Preeti, or the character it
+   * transliterates to in romanized mode. Empty where the key produces nothing
+   * worth showing.
+   */
   label: string;
+  /**
+   * The physical letter printed on the user's actual keyboard, shown small
+   * above the glyph. This is what makes the cap dual-label and teachable: the
+   * user reads the Latin they must press and the Devanagari they will get.
+   */
+  sub?: string;
   /** What Shift produces, where it differs. Shown small in the corner. */
   shiftLabel?: string;
   /** Relative width, 1 = a standard key. */
