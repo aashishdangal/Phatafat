@@ -40,5 +40,19 @@
   {"target": "दुःख", "accept": ["dukh", "dukha", "dukkha", "duhkha"], "reject": ["dukhi", "dhukh"]},
   {"target": "प्रायः", "accept": ["praay", "praya", "prayah", "pray"], "reject": ["prayaha", "praye", "praayi"]},
   {"target": "अङ्ग्रेजी", "accept": ["angreji", "anggreji", "angrejee"], "reject": ["agreji", "angrej"]},
-  {"target": "यहाँ", "accept": ["yaha", "yahan", "yahaa", "yahaa^", "yaham"], "reject": ["yaho", "yah"]}
+  {"target": "यहाँ", "accept": ["yaha", "yahan", "yahaa", "yahaa^", "yaham"], "reject": ["yaho", "yah"]},
+  {"target": "नङ", "accept": ["nang", "nan"], "reject": ["nag", "nung"]},
+  {"target": "लमजुङ", "accept": ["lamjung", "lamajung", "lamjun"], "reject": ["lamjang", "lamjug"]},
+  {"target": "कञ्चनपुर", "accept": ["kanchanpur", "kanychanapur"], "reject": ["kachanpur", "kanchanpor"]},
+  {"target": "हड्डी", "accept": ["hadi", "haddi", "haddee"], "reject": ["hada", "hadhi"]},
+  {"target": "कक्षा", "accept": ["kaksha", "kakshaa", "kakchha", "kachha"], "reject": ["kaksa", "kakshya"]},
+  {"target": "विज्ञापन", "accept": ["vigyapan", "bigyapan", "vigyaapan", "vigyapn"], "reject": ["vijapan", "vigyapam"]},
+  {"target": "पृथ्वी", "accept": ["prithvi", "prithwi", "pruthvi"], "reject": ["prithi", "prathvi"]},
+  {"target": "हिँड्छु", "accept": ["hidchhu", "hindchhu", "hidchu"], "reject": ["hidcha", "hidchhi"]},
+  {"target": "गहुँ", "accept": ["gahu", "gahun", "gahoo"], "reject": ["gaha", "gahi"]},
+  {"target": "आफैं", "accept": ["aaphain", "aafai", "aphai"], "reject": ["aaphi", "aafau"]},
+  {"target": "गर्छौं", "accept": ["garchhaun", "garchhau", "garchaun"], "reject": ["garchhun", "garchhen"]},
+  {"target": "श्रीमान्", "accept": ["shriman", "shrimaan", "sriman"], "reject": ["shrima", "shrimani"]},
+  {"target": "सिन्धुपाल्चोक", "accept": ["sindhupalchok", "sindhupaalchok"], "reject": ["sindupalchok", "sindhupalchak"]},
+  {"target": "ओखलढुङ्गा", "accept": ["okhaldhunga", "okhaladhunggaa"], "reject": ["okhaldunga", "okhaldunga"]}
 ]
