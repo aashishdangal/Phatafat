@@ -1,0 +1,208 @@
+/*
+ * Phatafat design tokens.
+ *
+ * Palette is drawn from the Nepali flag: crimson (#dc143c) and the border blue
+ * (#003893), on a near-black neutral biased very slightly warm so the crimson
+ * sits on it without vibrating. Crimson is the accent and the error colour;
+ * blue is the cool/neutral tone for time, hints and the slow end of the
+ * progress bar. Nothing else gets a hue.
+ *
+ * Two skins, switched with data-skin on <html>:
+ *   alive   (default) — reactive colour, glow, motion
+ *   serious           — muted, still, exam-like; same layout, no spectacle
+ *
+ * Dark is the default theme. Light exists so the tokens stay honest, and is
+ * opt-in via data-theme="light".
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Neutrals — warm-biased, not pure grey */
+  --bg: #0d0b0c;
+  --bg-raised: #151214;
+  --surface: #1b171a;
+  --surface-hi: #241f23;
+  --line: #2e272c;
+  --line-strong: #41383e;
+
+  /* Foreground */
+  --fg: #efe9ec;
+  --fg-muted: #a2969d;
+  --fg-faint: #6b6066;
+  --fg-ghost: #453d42;
+
+  /* Nepali flag palette */
+  --crimson: #dc143c;
+  --crimson-hi: #ff2d55;
+  --crimson-dim: #8e1028;
+  --crimson-wash: rgb(220 20 60 / 0.12);
+  --blue: #4477d8;
+  --blue-dim: #2b4a86;
+  --blue-wash: rgb(68 119 216 / 0.12);
+
+  /* Semantic roles — components use these, never the raw hues */
+  --accent: var(--crimson);
+  --error: var(--crimson);
+  --error-wash: var(--crimson-wash);
+  --info: var(--blue);
+  --word-pending: var(--fg-faint);
+  --word-active: var(--fg);
+  --word-correct: var(--fg-muted);
+  --word-wrong: var(--crimson);
+  --caret: var(--crimson);
+
+  /* Type */
+  --font-deva: "Noto Sans Devanagari", "Mangal", sans-serif;
+  --font-ui: "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 4rem;
+
+  /* Space */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-12: 3rem;
+
+  /* Surfaces — outer radius = inner radius + padding (better-ui) */
+  --radius-key: 6px;
+  --radius-inner: 8px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.25);
+  --shadow-float: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  --glow-accent: 0 0 20px rgb(220 20 60 / 0.35);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-slow: 300ms;
+  --press-scale: 0.96;
+}
+
+/* Serious skin: same structure, no spectacle. */
+:root[data-skin="serious"] {
+  --crimson-hi: var(--crimson);
+  --glow-accent: none;
+  --shadow-raised: none;
+  --shadow-float: 0 1px 3px rgb(0 0 0 / 0.5);
+  --word-pending: #6f656b;
+  --accent: #b5173a;
+  --error: #b5173a;
+  --caret: var(--fg-muted);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #faf7f8;
+  --bg-raised: #ffffff;
+  --surface: #f2eef0;
+  --surface-hi: #e8e2e5;
+  --line: #ded6da;
+  --line-strong: #c3b8be;
+
+  --fg: #171315;
+  --fg-muted: #5e545a;
+  --fg-faint: #8d8288;
+  --fg-ghost: #bfb5bb;
+
+  --crimson: #c2102f;
+  --crimson-hi: #dc143c;
+  --crimson-dim: #f0b9c5;
+  --crimson-wash: rgb(194 16 47 / 0.1);
+  --blue: #003893;
+  --blue-dim: #9fb4dd;
+  --blue-wash: rgb(0 56 147 / 0.09);
+
+  --shadow-raised: 0 1px 2px rgb(23 19 21 / 0.08), 0 2px 8px rgb(23 19 21 / 0.06);
+  --shadow-float: 0 2px 4px rgb(23 19 21 / 0.1), 0 8px 24px rgb(23 19 21 / 0.1);
+  --glow-accent: 0 0 20px rgb(194 16 47 / 0.2);
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  padding-left: max(var(--sp-4), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sp-4), env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-key);
+}
+
+/* Press feedback — never on a disabled control (better-ui) */
+@media (prefers-reduced-motion: no-preference) {
+  button:not(:disabled):active {
+    scale: var(--press-scale);
+    transition-property: scale;
+    transition-duration: var(--dur-fast);
+    transition-timing-function: ease-out;
+  }
+}
+
+/* Hover styling only where a real pointer exists (better-ui) */
+@media (hover: hover) {
+  button:not(:disabled):hover {
+    color: var(--fg);
+  }
+}
+
+/* Numbers that sit in columns must not jitter */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
