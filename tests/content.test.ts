@@ -28,7 +28,9 @@ describe("word list", () => {
   });
 
   it("is all Devanagari, with no stray Latin, spaces or punctuation", () => {
-    const bad = common.filter((w) => !/^[ऀ-ॿ]+$/.test(w));
+    // U+0900-U+097F plus ZWNJ and ZWJ: eyelash ra (गर्‍यो) is spelled with a
+    // ZWJ, which rules.md A2 strips from the target, so it belongs here.
+    const bad = common.filter((w) => !/^[\u0900-\u097F\u200c\u200d]+$/.test(w));
     expect(bad).toEqual([]);
   });
 

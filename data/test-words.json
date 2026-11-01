@@ -36,5 +36,8 @@
   {"target": "भर्‍यो", "accept": ["bharyo"], "reject": ["baryo", "bharo"]},
   {"target": "गरें", "accept": ["garen", "gare", "garein", "garain"], "reject": ["garin", "garun"]},
   {"target": "भनें", "accept": ["bhanen", "bhane", "bhanein"], "reject": ["banen", "bhanin"]},
-  {"target": "काठमाडौं", "accept": ["kathmadau", "kathmadaun", "kathmado", "kathmandu", "kathmandau"], "reject": ["kathmadu", "kathmadi", "kathmando"]}
+  {"target": "काठमाडौं", "accept": ["kathmadau", "kathmadaun", "kathmado", "kathmandu", "kathmandau"], "reject": ["kathmadu", "kathmadi", "kathmando"]},
+  {"target": "दुःख", "accept": ["dukh", "dukha", "dukkha", "duhkha"], "reject": ["dukhi", "dhukh"]},
+  {"target": "प्रायः", "accept": ["praay", "praya", "prayah", "pray"], "reject": ["prayaha", "praye", "praayi"]},
+  {"target": "अङ्ग्रेजी", "accept": ["angreji", "anggreji", "angrejee"], "reject": ["agreji", "angrej"]}
 ]
