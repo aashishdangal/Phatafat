@@ -20,9 +20,12 @@
  *
  * Mapping checked against the Preeti table of mapmeld/preeti (Shuvayatra),
  * the most used open-source Preeti converter (CC BY-NC-SA). Compared, not
- * copied: only the key → glyph facts are shared. Letters that need an Alt
- * code in real Preeti (ङ = ª, eyelash ra ¥, ्य Ø, ...) cannot be typed on
- * a keyboard, so words with ङ are untypeable here.
+ * copied: only the key → glyph facts are shared.
+ *
+ * Letters with no key are typed with a Windows Alt code (hold Alt, type the
+ * number on the numpad). ALT_TABLE holds every code on the standard Preeti
+ * chart; where the chart gives a conjunct its own glyph (ङ्ग = Alt+0203,
+ * ट्ट = Alt+0167, द्र = Alt+0155, ...), the standard sequence uses it.
  */
 
 const HALANT = "्";
@@ -129,6 +132,80 @@ export const PREETI_KEYS: ReadonlyMap<string, string> = new Map([
   ["<", "?"],
 ]);
 
+/**
+ * Every Alt code on the standard Preeti chart: [character, numpad code, what
+ * the font draws]. The character is what Windows inserts for that code
+ * (Windows-1252), which is what the browser hands us.
+ */
+export const ALT_TABLE: ReadonlyArray<readonly [string, string, string]> = [
+  ["ª", "0170", "ङ"],
+  ["Ë", "0203", "ङ्ग"],
+  ["Í", "0205", "ङ्क"],
+  ["Î", "0206", "ङ्ख"],
+  ["‹", "0139", "ङ्घ"],
+  ["§", "0167", "ट्ट"],
+  ["Ý", "0221", "ट्ठ"],
+  ["¶", "0182", "ठ्ठ"],
+  ["•", "0149", "ड्ड"],
+  ["°", "0176", "ड्ढ"],
+  ["›", "0155", "द्र"],
+  ["å", "0229", "द्व"],
+  ["ß", "0223", "द्म"],
+  ["Ì", "0204", "न्न"],
+  ["„", "0132", "ध्र"],
+  ["Å", "0197", "हृ"],
+  ["¿", "0191", "रू"],
+  ["¥", "0165", "र्\u200d"],
+  ["Ø", "0216", "्य"],
+  ["«", "0171", "्र"],
+  ["ˆ", "0136", "फ्"],
+  ["£", "0163", "घ्"],
+  ["‰", "0137", "झ्"],
+  ["˜", "0152", "ऽ"],
+  ["ç", "0231", "ॐ"],
+  ["Þ", "0222", "़"],
+  ["…", "0133", "‘"],
+  ["Ú", "0218", "’"],
+  ["æ", "0230", "“"],
+  ["Æ", "0198", "”"],
+  ["–", "0150", "-"],
+  ["—", "0151", "—"],
+  ["±", "0177", "+"],
+  ["Ö", "0214", "="],
+  ["÷", "0247", "/"],
+  ["Ü", "0220", "%"],
+  ["Û", "0219", "!"],
+  ["Ù", "0217", ";"],
+  ["Ò", "0210", "¨"],
+];
+
+/** Characters typed with Alt + a numpad code, and that code. */
+export const ALT_CODES: ReadonlyMap<string, string> = new Map(
+  ALT_TABLE.map(([char, code]) => [char, code]),
+);
+
+/** Alt code → the character Windows would insert for it. */
+const CHAR_FOR_CODE: ReadonlyMap<string, string> = new Map(
+  ALT_TABLE.map(([char, code]) => [code, char]),
+);
+
+/**
+ * The character for digits typed while Alt is held, or null when the code is
+ * not on the Preeti chart. A missing leading zero is forgiven (203 = 0203).
+ * This lets Alt codes work from the top number row, on keyboards with no
+ * numpad, where Windows itself would not build them.
+ */
+export function charForAltCode(digits: string): string | null {
+  if (!/^\d{3,4}$/.test(digits)) return null;
+  return CHAR_FOR_CODE.get(digits.padStart(4, "0")) ?? null;
+}
+
+/** Every character Preeti can type, key or Alt code → what the font draws. */
+const GLYPHS: ReadonlyMap<string, string> = new Map([
+  ...PREETI_KEYS,
+  ...ALT_TABLE.map(([char, , glyph]) => [char, glyph] as const),
+]);
+
 /** Plain `m`: the tail glyph, not a letter of its own (see the header). */
 export const TAIL_KEY = "m";
 
@@ -139,7 +216,7 @@ export const TAIL_KEY = "m";
 /** Full consonants. Two-key letters are built from two glyphs (see above). */
 const FULL: ReadonlyMap<string, string> = new Map([
   ["क", "s"], ["ख", "v"], ["ग", "u"], ["घ", "3"], ["च", "r"], ["छ", "5"],
-  ["ज", "h"], ["झ", "em"], ["ञ", "`"], ["ट", "6"], ["ठ", "7"], ["ड", "8"],
+  ["ज", "h"], ["झ", "em"], ["ञ", "`"], ["ङ", "ª"], ["ट", "6"], ["ठ", "7"], ["ड", "8"],
   ["ढ", "9"], ["ण", "0f"], ["त", "t"], ["थ", "y"], ["द", "b"], ["ध", "w"],
   ["न", "g"], ["प", "k"], ["फ", "km"], ["ब", "a"], ["भ", "e"], ["म", "d"],
   ["य", "o"], ["र", "/"], ["ल", "n"], ["व", "j"], ["श", "z"], ["ष", "if"],
@@ -152,10 +229,31 @@ const HALF: ReadonlyMap<string, string> = new Map([
   ["त", "T"], ["थ", "Y"], ["ध", "W"], ["न", "G"], ["प", "K"], ["ब", "A"],
   ["भ", "E"], ["म", "D"], ["ल", "N"], ["व", "J"], ["श", "Z"], ["ष", "i"],
   ["स", ":"], ["ह", "X"], ["ञ", "~"],
+  // Alt codes
+  ["फ", "ˆ"], ["घ", "£"], ["झ", "‰"],
 ]);
+
+/** Letters whose rakar is the under-form ्र (Alt+0171) rather than |. */
+const UNDER_RAKAR = new Set(["ट", "ठ", "ड", "ढ"]);
 
 /** Conjuncts with a key of their own, longest first. */
 const CONJUNCTS: ReadonlyArray<readonly [string, string]> = [
+  // Alt-code conjuncts from the Preeti chart
+  ["ङ्ग", "Ë"],
+  ["ङ्क", "Í"],
+  ["ङ्ख", "Î"],
+  ["ङ्घ", "‹"],
+  ["ट्ट", "§"],
+  ["ट्ठ", "Ý"],
+  ["ठ्ठ", "¶"],
+  ["ड्ड", "•"],
+  ["ड्ढ", "°"],
+  ["द्र", "›"],
+  ["द्व", "å"],
+  ["द्म", "ß"],
+  ["न्न", "Ì"],
+  ["ध्र", "„"],
+  // Keyboard conjuncts
   ["क्ष", "If"],
   ["क्र", "qm"], // त्र + tail
   ["क्त", "Qm"], // त्त + tail
@@ -187,14 +285,19 @@ const OTHER: ReadonlyMap<string, string> = new Map([
   ["०", ")"], ["१", "!"], ["२", "@"], ["३", "#"], ["४", "$"],
   ["५", "%"], ["६", "^"], ["७", "&"], ["८", "*"], ["९", "("],
   ["।", "."], [",", ","],
+  // Punctuation the number row cannot give (its keys type letters)
+  ["?", "<"], ["(", "-"], [")", "_"], [".", "="],
+  // Alt codes
+  ["ऽ", "˜"], ["ॐ", "ç"], ["‘", "…"], ["’", "Ú"], ["“", "æ"], ["”", "Æ"],
+  ["-", "–"], ["—", "—"], ["+", "±"], ["=", "Ö"], ["/", "÷"], ["%", "Ü"],
+  ["!", "Û"], [";", "Ù"],
 ]);
 
 const isConsonant = (ch: string | undefined): boolean => ch !== undefined && FULL.has(ch);
 
 /**
  * The standard Preeti keystrokes for a Unicode word, or null when the word
- * contains something Preeti cannot type from the keyboard (ङ, until its key
- * is confirmed).
+ * contains something Preeti has no key or Alt code for.
  */
 export function unicodeToPreeti(word: string): string | null {
   const chars = [...word.normalize("NFC").replace(/़/g, "")];
@@ -216,7 +319,7 @@ export function unicodeToPreeti(word: string): string | null {
       for (;;) {
         // Eyelash ra (र्‍य): an explicit र + halant, then the next consonant.
         if (chars[i] === "र" && chars[i + 1] === HALANT && chars[i + 2] === "‍") {
-          cluster += "/\\";
+          cluster += "¥";
           i += 3;
           continue;
         }
@@ -227,8 +330,19 @@ export function unicodeToPreeti(word: string): string | null {
         const afterUnit = chars[i + len];
 
         if (afterUnit === HALANT && chars[i + len + 1] === "र" && conj === undefined) {
-          // Rakar: consonant + ्र (प्र = k|).
-          cluster += (FULL.get(unit) as string) + "|";
+          // Rakar: consonant + ्र (प्र = k|; ट्र = 6 + Alt+0171).
+          cluster += (FULL.get(unit) as string) + (UNDER_RAKAR.has(unit) ? "«" : "|");
+          i += len + 2;
+          break;
+        }
+        if (
+          afterUnit === HALANT &&
+          chars[i + len + 1] === "य" &&
+          conj === undefined &&
+          !HALF.has(unit)
+        ) {
+          // ्य under a letter with no half form: ट्य = 6 + Alt+0216.
+          cluster += (FULL.get(unit) as string) + "Ø";
           i += len + 2;
           break;
         }
@@ -240,6 +354,16 @@ export function unicodeToPreeti(word: string): string | null {
         }
         if (unit === "र" && afterUnit === "ु") {
           cluster += "?";
+          i += 2;
+          break;
+        }
+        if (unit === "र" && afterUnit === "ू") {
+          cluster += "¿"; // Alt+0191
+          i += 2;
+          break;
+        }
+        if (unit === "ह" && afterUnit === "ृ") {
+          cluster += "Å"; // Alt+0197
           i += 2;
           break;
         }
@@ -334,7 +458,7 @@ export function preetiToUnicode(keys: string): string {
     if (k === "l") text += I_MARK;
     else if (k === "{") text += REPH_MARK;
     else if (k === TAIL_KEY) text += TAIL_MARK;
-    else text += PREETI_KEYS.get(k) ?? k;
+    else text += GLYPHS.get(k) ?? k;
   }
   for (const [from, to] of MERGES) text = text.split(from).join(to);
 
@@ -378,8 +502,15 @@ const PHYSICAL: ReadonlyMap<string, readonly [string, boolean]> = (() => {
   return map;
 })();
 
-/** The physical key and Shift state that type a Preeti character. */
-export function keyFor(char: string): { code: string; shift: boolean } | null {
+/**
+ * The physical key and Shift state that type a Preeti character. An Alt-code
+ * character points at the Alt key and carries the code to type.
+ */
+export function keyFor(
+  char: string,
+): { code: string; shift: boolean; altCode?: string } | null {
+  const altCode = ALT_CODES.get(char);
+  if (altCode !== undefined) return { code: "AltLeft", shift: false, altCode };
   const hit = PHYSICAL.get(char);
   return hit === undefined ? null : { code: hit[0], shift: hit[1] };
 }

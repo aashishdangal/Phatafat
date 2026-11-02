@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import cases from "../data/preeti-test-words.json";
 import words from "../src/data/words.json";
 import passages from "../src/data/passages.json";
-import { keyFor, preetiToUnicode, unicodeToPreeti } from "../src/engine/preeti";
+import { charForAltCode, keyFor, preetiToUnicode, unicodeToPreeti } from "../src/engine/preeti";
 
 const ZW = /[‌‍]/g;
 
@@ -37,8 +37,8 @@ describe("preeti — round trip over the real content", () => {
 
   it("can type nearly all of it", () => {
     const untypeable = all.filter((w) => unicodeToPreeti(w) === null);
-    // Only letters with no confirmed Preeti key (ङ for now) may be missing.
-    expect(untypeable.filter((w) => !w.includes("ङ"))).toEqual([]);
+    // ङ is typed with an Alt code, so nothing is left out.
+    expect(untypeable).toEqual([]);
   });
 });
 
@@ -50,5 +50,29 @@ describe("preeti — physical keys", () => {
     expect(keyFor("'")).toEqual({ code: "Quote", shift: false });
     expect(keyFor("@")).toEqual({ code: "Digit2", shift: true });
     expect(keyFor(" ")).toEqual({ code: "Space", shift: false });
+  });
+
+  it("asks for Alt and the code for Alt-code letters (ङ = Alt+0170)", () => {
+    expect(keyFor("ª")).toEqual({ code: "AltLeft", shift: false, altCode: "0170" });
+    expect(keyFor("Ë")).toEqual({ code: "AltLeft", shift: false, altCode: "0203" });
+    expect(keyFor("„")).toEqual({ code: "AltLeft", shift: false, altCode: "0132" });
+  });
+});
+
+describe("preeti — Alt codes from the top number row", () => {
+  it("turns the digits typed while Alt is held into the chart's character", () => {
+    expect(charForAltCode("0203")).toBe("Ë"); // ङ्ग
+    expect(charForAltCode("0170")).toBe("ª"); // ङ
+    expect(charForAltCode("0204")).toBe("Ì"); // न्न
+  });
+
+  it("forgives a missing leading zero", () => {
+    expect(charForAltCode("203")).toBe("Ë");
+  });
+
+  it("ignores codes that are not on the chart", () => {
+    expect(charForAltCode("0065")).toBeNull();
+    expect(charForAltCode("12")).toBeNull();
+    expect(charForAltCode("")).toBeNull();
   });
 });
