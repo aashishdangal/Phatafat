@@ -71,8 +71,10 @@
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
+  --text-md: 0.9375rem; /* the menu: a touch above body-small */
   --text-base: 1rem;
   --text-lg: 1.25rem;
+  --text-brand: 1.5rem; /* the centred name: between lg and xl */
   --text-xl: 1.75rem;
   --text-2xl: 2.5rem;
   --text-3xl: 4rem;

@@ -60,17 +60,19 @@
  * Header
  * ------------------------------------------------------------------ */
 
+/* The name, centred, with the tagline on its own line beneath it. */
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-3);
-  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
 }
 
 .brand-name {
   margin: 0;
   font-family: var(--font-deva);
-  font-size: var(--text-lg);
+  font-size: var(--text-brand);
   font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--fg);
@@ -934,9 +936,6 @@
 }
 
 @media (max-width: 560px) {
-  .brand-tag {
-    display: none;
-  }
 
   .top {
     padding-block: var(--sp-3);
@@ -1113,13 +1112,6 @@
   padding-block: var(--sp-4);
 }
 
-.top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
-}
-
 /* The test bar: one quiet capsule, sections split by hairlines. */
 .testbar {
   align-self: center;
@@ -1200,7 +1192,7 @@
   z-index: 1;
   padding: 0.3rem 0.75rem;
   border-radius: var(--radius-pill);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   line-height: 1.35;
   white-space: nowrap;
   color: var(--fg-muted);
@@ -1283,7 +1275,7 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: var(--radius-pill);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   color: var(--fg-muted);
   transition-property: color, background-color, scale;
   transition-duration: var(--dur-fast);
@@ -1376,7 +1368,7 @@
 }
 
 .seg--compact .seg__opt {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   padding: 0.2rem 0.6rem;
 }
 
@@ -1446,12 +1438,12 @@
 }
 
 .settings-row__label {
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   color: var(--fg-muted);
 }
 
 .seg--panel .seg__opt {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   padding: 0.25rem 0.65rem;
 }
 
@@ -1470,17 +1462,41 @@
 /* Narrow phones: the name and the quick settings share one row only while
    they fit; then the quick settings drop to their own row, right-aligned,
    instead of squeezing the name. */
+/* Three columns, the outer two equal, so the name sits on the true centre
+   of the page whatever width the quick settings take. */
 .top-row {
-  flex-wrap: wrap;
-  gap: var(--sp-3) var(--sp-2);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
 }
 
 .brand {
-  flex: none;
+  grid-column: 2;
 }
 
 .quick {
-  margin-left: auto;
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* Phones and tablets: the side columns get too narrow for the quick
+   settings to sit clear of the tagline. They take a slim row at the top
+   right; the name and tagline sit centred beneath. */
+@media (max-width: 859.98px) {
+  .top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .quick {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .brand {
+    grid-column: 1;
+    grid-row: 2;
+  }
 }
 
 /* Touch: icon buttons grow to the 44px target. */
