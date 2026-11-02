@@ -11,9 +11,16 @@ import type { TestLength } from "../session/session";
 import { el, toggleClass } from "./dom";
 import { neNum } from "./format";
 import { ne } from "./strings";
-import { LENGTH_OPTIONS, type LayoutVariant, type Skin, type Theme } from "./settings";
+import {
+  LENGTH_OPTIONS,
+  type InputMode,
+  type LayoutVariant,
+  type Skin,
+  type Theme,
+} from "./settings";
 
 export interface ControlHandlers {
+  onMode: (mode: InputMode) => void;
   onLength: (length: TestLength) => void;
   onVariant: (variant: LayoutVariant) => void;
   onKeyboard: (show: boolean) => void;
@@ -37,6 +44,7 @@ function lengthKey(length: TestLength): string {
 
 export class ControlBar {
   readonly el: HTMLElement;
+  private readonly modePills = new Map<InputMode, HTMLButtonElement>();
   private readonly lengthPills = new Map<string, HTMLButtonElement>();
   private readonly variantPills = new Map<LayoutVariant, HTMLButtonElement>();
   private readonly keyboardPill: HTMLButtonElement;
@@ -46,11 +54,17 @@ export class ControlBar {
   private dimmed = false;
 
   constructor(handlers: ControlHandlers) {
-    const modeGroup = el("div", { class: "group", role: "group", "aria-label": ne.mode }, [
-      pill(ne.modeRomanized, { "aria-pressed": "true" }),
-      pill(ne.modePreeti, { disabled: "", title: ne.comingSoon }),
-      pill(ne.modeFree, { disabled: "", title: ne.comingSoon }),
-    ]);
+    const modeGroup = el("div", { class: "group", role: "group", "aria-label": ne.mode });
+    for (const [mode, label] of [
+      ["romanized", ne.modeRomanized],
+      ["preeti", ne.modePreeti],
+    ] as const) {
+      const button = pill(label);
+      button.addEventListener("click", () => handlers.onMode(mode));
+      this.modePills.set(mode, button);
+      modeGroup.append(button);
+    }
+    modeGroup.append(pill(ne.modeFree, { disabled: "", title: ne.comingSoon }));
 
     const lengthGroup = el("div", { class: "group", role: "group", "aria-label": ne.time });
     lengthGroup.append(el("span", { class: "group-label", text: ne.time }));
@@ -118,6 +132,12 @@ export class ControlBar {
       ]),
       this.bar,
     ]);
+  }
+
+  setMode(mode: InputMode): void {
+    for (const [m, button] of this.modePills) {
+      button.setAttribute("aria-pressed", m === mode ? "true" : "false");
+    }
   }
 
   setLength(length: TestLength): void {

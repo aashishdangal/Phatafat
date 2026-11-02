@@ -14,6 +14,19 @@ import { el, toggleClass } from "./dom";
 
 const FLASH_MS = 150;
 
+const SVG = "http://www.w3.org/2000/svg";
+
+/** A cap glyph that only exists inside a legacy font, drawn as a stroke. */
+function drawnGlyph(d: string): SVGSVGElement {
+  const svg = document.createElementNS(SVG, "svg");
+  svg.setAttribute("class", "kb-glyph kb-glyph--drawn");
+  svg.setAttribute("viewBox", "0 0 16 16");
+  const path = document.createElementNS(SVG, "path");
+  path.setAttribute("d", d);
+  svg.append(path);
+  return svg;
+}
+
 export class KeyboardView {
   readonly el: HTMLElement;
   private readonly caps = new Map<string, HTMLElement>();
@@ -35,7 +48,8 @@ export class KeyboardView {
             "aria-hidden": "true",
           });
           if (cap.sub !== undefined) node.append(el("span", { class: "kb-sub", text: cap.sub }));
-          if (cap.label !== "") node.append(el("span", { class: "kb-glyph", text: cap.label }));
+          if (cap.glyphPath !== undefined) node.append(drawnGlyph(cap.glyphPath));
+          else if (cap.label !== "") node.append(el("span", { class: "kb-glyph", text: cap.label }));
           if (cap.shiftLabel !== undefined) {
             node.append(el("span", { class: "kb-shift-glyph", text: cap.shiftLabel }));
           }

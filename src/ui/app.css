@@ -1107,3 +1107,15 @@
     scale: 0.96;
   }
 }
+
+/* A cap glyph drawn as a stroke (Preeti's m tail): sized and coloured like
+   the text glyphs beside it, so it reads as part of the same set. */
+.kb-glyph--drawn {
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: butt; /* the font's strokes end square, not rounded */
+  stroke-linejoin: round;
+}

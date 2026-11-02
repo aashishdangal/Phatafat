@@ -37,7 +37,7 @@ export interface KeyEvent {
 export type CommitMode = "word" | "key";
 
 export interface InputUpdate {
-  /** The raw buffer as typed: Latin for romanized, Devanagari for Preeti. */
+  /** The raw buffer as typed: Latin for romanized, the pressed keys for Preeti. */
   buffer: string;
   /** Devanagari rendering of the buffer, for the live preview. */
   preview: string;
@@ -73,6 +73,11 @@ export interface KeyCap {
    * user reads the Latin they must press and the Devanagari they will get.
    */
   sub?: string;
+  /**
+   * A glyph with no Unicode character of its own, drawn instead of `label`
+   * as an SVG path in a 0 0 16 16 box (Preeti's `m` tail, for one).
+   */
+  glyphPath?: string;
   /** What Shift produces, where it differs. Shown small in the corner. */
   shiftLabel?: string;
   /** Relative width, 1 = a standard key. */

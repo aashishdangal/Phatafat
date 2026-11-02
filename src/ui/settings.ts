@@ -11,8 +11,10 @@ import type { TestLength } from "../session/session";
 export type LayoutVariant = "wrapped" | "focus" | "passage";
 export type Skin = "alive" | "serious";
 export type Theme = "dark" | "light";
+export type InputMode = "romanized" | "preeti";
 
 export interface Settings {
+  mode: InputMode;
   variant: LayoutVariant;
   length: TestLength;
   keyboard: boolean;
@@ -30,6 +32,7 @@ function keyboardDefault(): boolean {
 
 export function defaultSettings(): Settings {
   return {
+    mode: "romanized",
     variant: "wrapped",
     length: { kind: "time", seconds: 30 },
     keyboard: keyboardDefault(),
@@ -69,6 +72,7 @@ export function loadSettings(): Settings {
     if (typeof parsed !== "object" || parsed === null) return base;
     const data = parsed as Partial<Record<keyof Settings, unknown>>;
     return {
+      mode: data.mode === "preeti" || data.mode === "romanized" ? data.mode : base.mode,
       variant: VARIANTS.includes(data.variant as LayoutVariant)
         ? (data.variant as LayoutVariant)
         : base.variant,

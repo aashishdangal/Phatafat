@@ -14,8 +14,10 @@
 
 import { countGraphemes } from "../engine/scoring";
 import { codeForChar } from "../engine/hint";
+import { keyFor, unicodeToPreeti } from "../engine/preeti";
+import { PreetiInput } from "../input/preeti";
 import { RomanizedInput } from "../input/romanized";
-import type { KeyEvent, KeyHint } from "../input/types";
+import type { InputMethod, KeyEvent, KeyHint } from "../input/types";
 import { Session, type SessionState, type WordSource } from "../session/session";
 import passagesJson from "../data/passages.json";
 import wordsJson from "../data/words.json";
@@ -35,6 +37,15 @@ import type { WordView } from "./words/common";
 const COMMON_WORDS: readonly string[] = wordsJson.common;
 const PASSAGES = passagesJson.passages;
 
+/**
+ * Preeti can type almost every word, but not all: ङ has no confirmed key yet.
+ * Untypeable words and passages are simply left out of Preeti tests.
+ */
+const PREETI_WORDS: readonly string[] = COMMON_WORDS.filter((w) => unicodeToPreeti(w) !== null);
+const PREETI_PASSAGES = PASSAGES.filter((p) =>
+  p.text.trim().split(/\s+/).every((w) => unicodeToPreeti(w) !== null),
+);
+
 const VARIANT_LABEL: Record<LayoutVariant, string> = {
   wrapped: ne.layoutWrapped,
   focus: ne.layoutFocus,
@@ -43,12 +54,16 @@ const VARIANT_LABEL: Record<LayoutVariant, string> = {
 
 export function startApp(root: HTMLElement): void {
   const settings = loadSettings();
-  const input = new RomanizedInput();
+  let input: InputMethod = makeInput();
+
+  function makeInput(): InputMethod {
+    return settings.mode === "preeti" ? new PreetiInput() : new RomanizedInput();
+  }
 
   /* ---------------- shell ---------------- */
 
   const progress = new ProgressBar();
-  const keyboard = new KeyboardView(input.layout);
+  let keyboard = new KeyboardView(input.layout);
   const wordsHost = el("div", { class: "words-host" });
   const typebox = el("input", {
     class: "typebox",
@@ -77,6 +92,17 @@ export function startApp(root: HTMLElement): void {
   const resultsHost = el("div", { class: "results-host" });
 
   const controls = new ControlBar({
+    onMode: (mode) => {
+      if (mode === settings.mode) return;
+      settings.mode = mode;
+      persist();
+      controls.setMode(mode);
+      // A new mode brings its own keystroke handling and its own keyboard.
+      input = makeInput();
+      keyboard = new KeyboardView(input.layout);
+      keyboardHost.replaceChildren(keyboard.el);
+      rebuild();
+    },
     onLength: (length) => {
       settings.length = length;
       persist();
@@ -157,12 +183,15 @@ export function startApp(root: HTMLElement): void {
   let passageTitle = "";
 
   function pickPassage(): { title: string; text: string } {
-    const chosen = PASSAGES[Math.floor(Math.random() * PASSAGES.length)] ?? PASSAGES[0];
+    const pool = settings.mode === "preeti" ? PREETI_PASSAGES : PASSAGES;
+    const chosen = pool[Math.floor(Math.random() * pool.length)] ?? pool[0];
     return { title: chosen?.title ?? "", text: chosen?.text ?? "" };
   }
 
   function makeSource(): WordSource {
-    if (settings.variant !== "passage") return { kind: "words", words: COMMON_WORDS };
+    if (settings.variant !== "passage") {
+      return { kind: "words", words: settings.mode === "preeti" ? PREETI_WORDS : COMMON_WORDS };
+    }
     const passage = pickPassage();
     passageTitle = passage.title;
     return { kind: "passage", text: passage.text };
@@ -189,6 +218,9 @@ export function startApp(root: HTMLElement): void {
     stopLoop();
     suspendUpdates = true;
     const source = makeSource();
+    // A new session reuses the input method, so clear what it was holding:
+    // half-typed keys must not leak into the next test.
+    input.reset();
     session = new Session({ length: settings.length, source, input });
     session.subscribe(onState);
     suspendUpdates = false;
@@ -333,7 +365,7 @@ export function startApp(root: HTMLElement): void {
       renderResults({
         results,
         samples: line,
-        modeLabel: `${ne.modeRomanized} · ${VARIANT_LABEL[settings.variant]}`,
+        modeLabel: `${settings.mode === "preeti" ? ne.modePreeti : ne.modeRomanized} · ${VARIANT_LABEL[settings.variant]}`,
         lengthLabel,
         onRestart: restart,
       }),
@@ -438,6 +470,10 @@ export function startApp(root: HTMLElement): void {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     // Let Space and Enter activate a focused button instead of typing.
     if (isControl(event.target) && (event.key === " " || event.key === "Enter")) return;
+    // Typing a character while a header button has focus (it was just
+    // clicked) means "back to the test": move focus there, so the Space that
+    // ends the word reaches the test instead of pressing the button.
+    if (isControl(event.target) && event.key.length === 1) focusTypebox();
 
     if (feed(event)) {
       event.preventDefault();
@@ -456,7 +492,8 @@ export function startApp(root: HTMLElement): void {
     if (inputEvent.timeStamp - lastKeyAt < 60) return;
     if (inputEvent.inputType === "insertText" || inputEvent.inputType === "insertCompositionText") {
       for (const ch of inputEvent.data ?? "") {
-        feed({ key: ch, code: codeForChar(ch.toLowerCase()) ?? "", shiftKey: ch !== ch.toLowerCase() });
+        const code = keyFor(ch)?.code ?? codeForChar(ch.toLowerCase()) ?? "";
+        feed({ key: ch, code, shiftKey: ch !== ch.toLowerCase() });
       }
       return;
     }
@@ -505,6 +542,7 @@ export function startApp(root: HTMLElement): void {
 
   applySkin();
   applyKeyboardVisibility();
+  controls.setMode(settings.mode);
   controls.setLength(settings.length);
   controls.setVariant(settings.variant);
   rebuild();
