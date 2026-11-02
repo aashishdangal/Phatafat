@@ -52,6 +52,7 @@
   --accent: var(--crimson);
   --error: var(--crimson);
   --error-wash: var(--crimson-wash);
+  --on-accent: #ffffff; /* text on a solid accent fill, both themes */
   --accent-text: var(--crimson-text);
   --error-text: var(--crimson-text);
   --info: var(--blue);

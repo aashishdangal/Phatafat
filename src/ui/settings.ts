@@ -12,9 +12,13 @@ export type LayoutVariant = "wrapped" | "focus" | "passage";
 export type Skin = "alive" | "serious";
 export type Theme = "dark" | "light";
 export type InputMode = "romanized" | "preeti";
+/** Interface language: Nepali, mixed (heavy words in English), English. */
+export type UiLanguage = "ne" | "mix" | "en";
+export const UI_LANGUAGES: readonly UiLanguage[] = ["ne", "mix", "en"];
 
 export interface Settings {
   mode: InputMode;
+  language: UiLanguage;
   variant: LayoutVariant;
   length: TestLength;
   keyboard: boolean;
@@ -33,6 +37,7 @@ function keyboardDefault(): boolean {
 export function defaultSettings(): Settings {
   return {
     mode: "romanized",
+    language: "mix", // the middle of the switch is the default
     variant: "wrapped",
     length: { kind: "time", seconds: 30 },
     keyboard: keyboardDefault(),
@@ -73,6 +78,9 @@ export function loadSettings(): Settings {
     const data = parsed as Partial<Record<keyof Settings, unknown>>;
     return {
       mode: data.mode === "preeti" || data.mode === "romanized" ? data.mode : base.mode,
+      language: UI_LANGUAGES.includes(data.language as UiLanguage)
+        ? (data.language as UiLanguage)
+        : base.language,
       variant: VARIANTS.includes(data.variant as LayoutVariant)
         ? (data.variant as LayoutVariant)
         : base.variant,

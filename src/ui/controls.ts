@@ -17,9 +17,11 @@ import {
   type LayoutVariant,
   type Skin,
   type Theme,
+  type UiLanguage,
 } from "./settings";
 
 export interface ControlHandlers {
+  onLanguage: (language: UiLanguage) => void;
   onMode: (mode: InputMode) => void;
   onLength: (length: TestLength) => void;
   onVariant: (variant: LayoutVariant) => void;
@@ -50,6 +52,7 @@ export class ControlBar {
   private readonly keyboardPill: HTMLButtonElement;
   private readonly skinPill: HTMLButtonElement;
   private readonly themePill: HTMLButtonElement;
+  private readonly languagePills = new Map<UiLanguage, HTMLButtonElement>();
   private readonly bar: HTMLElement;
   private dimmed = false;
 
@@ -118,6 +121,48 @@ export class ControlBar {
       handlers.onTheme(this.themePill.dataset.theme === "light" ? "dark" : "light");
     });
 
+    // Language: three segments with one crimson thumb that glides behind
+    // the active one. Each segment names its own language, so the switch
+    // reads the same whichever language is on.
+    this.languageThumb = el("span", { class: "lang-switch__thumb", "aria-hidden": "true" });
+    this.languageSwitch = el(
+      "div",
+      { class: "lang-switch", role: "radiogroup", "aria-label": ne.language },
+      [this.languageThumb],
+    );
+    const order: UiLanguage[] = [];
+    for (const [language, label, name] of [
+      ["ne", "ने", "नेपाली"],
+      ["mix", "ने+En", "नेपाली + English"],
+      ["en", "En", "English"],
+    ] as const) {
+      order.push(language);
+      const button = el("button", {
+        class: "lang-switch__pos",
+        type: "button",
+        role: "radio",
+        "aria-checked": "false",
+        tabindex: "-1",
+        // The visible label first, so voice control can say it (WCAG 2.5.3).
+        "aria-label": `${label} — ${name}`,
+        "data-name": name,
+        text: label,
+      });
+      button.addEventListener("click", () => this.chooseLanguage(language, handlers));
+      this.languagePills.set(language, button);
+      this.languageSwitch.append(button);
+    }
+    // Radio-group keys: arrows move the choice, as in any radio group.
+    this.languageSwitch.addEventListener("keydown", (event) => {
+      const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      if (step === 0) return;
+      event.preventDefault();
+      const next = order[(order.indexOf(this.language) + step + order.length) % order.length];
+      if (next !== undefined) this.chooseLanguage(next, handlers);
+    });
+    // Labels change width once the Devanagari webfont arrives.
+    void document.fonts?.ready.then(() => this.placeThumb());
+
     const tools = el("div", { class: "group group--tools" }, [
       this.keyboardPill,
       this.skinPill,
@@ -126,17 +171,59 @@ export class ControlBar {
 
     this.bar = el("div", { class: "controls" }, [modeGroup, lengthGroup, variantGroup, tools]);
     this.el = el("header", { class: "top" }, [
-      el("div", { class: "brand" }, [
-        el("h1", { class: "brand-name", text: ne.appName }),
-        el("span", { class: "brand-tag", text: ne.tagline }),
+      // App-wide, not a test option: the language sits with the name.
+      el("div", { class: "top-row" }, [
+        el("div", { class: "brand" }, [
+          el("h1", { class: "brand-name", text: ne.appName }),
+          el("span", { class: "brand-tag", text: ne.tagline }),
+        ]),
+        this.languageSwitch,
       ]),
       this.bar,
     ]);
   }
 
+  private readonly languageSwitch: HTMLElement;
+  private readonly languageThumb: HTMLElement;
+  private language: UiLanguage = "mix";
+
+  /**
+   * Glide the thumb to the new language, then hand over. The handler reloads
+   * the page, so it waits for the glide to finish: the user sees it move.
+   */
+  private chooseLanguage(language: UiLanguage, handlers: ControlHandlers): void {
+    if (language === this.language) return;
+    this.setLanguage(language);
+    this.languagePills.get(language)?.focus();
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(() => handlers.onLanguage(language), still ? 0 : 240);
+  }
+
+  /** Put the thumb behind the active segment. Layout read on change only. */
+  private placeThumb(): void {
+    const active = this.languagePills.get(this.language);
+    if (active === undefined || active.offsetWidth === 0) return;
+    this.languageThumb.style.setProperty("--thumb-x", `${active.offsetLeft}px`);
+    this.languageThumb.style.setProperty("--thumb-w", `${active.offsetWidth}px`);
+  }
+
   setMode(mode: InputMode): void {
     for (const [m, button] of this.modePills) {
       button.setAttribute("aria-pressed", m === mode ? "true" : "false");
+    }
+  }
+
+  setLanguage(language: UiLanguage): void {
+    this.language = language;
+    for (const [l, button] of this.languagePills) {
+      button.setAttribute("aria-checked", l === language ? "true" : "false");
+      button.tabIndex = l === language ? 0 : -1; // one tab stop for the group
+    }
+    this.placeThumb();
+    // The first placement happens before anything is seen: no glide in from
+    // the left edge. Transitions switch on from the next frame.
+    if (!this.languageSwitch.classList.contains("is-ready")) {
+      requestAnimationFrame(() => this.languageSwitch.classList.add("is-ready"));
     }
   }
 
@@ -182,5 +269,8 @@ export class ControlBar {
     this.dimmed = dimmed;
     toggleClass(this.bar, "is-dimmed", dimmed);
     this.bar.inert = dimmed;
+    // Switching language mid-test would reload the page: off while typing.
+    toggleClass(this.languageSwitch, "is-dimmed", dimmed);
+    this.languageSwitch.inert = dimmed;
   }
 }

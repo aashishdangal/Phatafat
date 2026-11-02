@@ -1,15 +1,25 @@
 /**
- * Nepali UI strings.
+ * Interface strings, in three languages the user picks with the header switch:
  *
- * The whole interface is in Nepali. Keys are ASCII so the code stays
- * greppable; every value is Devanagari. Kept as one flat map rather than an
- * i18n library — there is exactly one locale, and a second one would be a
- * second map, not a framework.
+ *   ne  — all Nepali
+ *   mix — Nepali, with the heavy or technical words in English (the default):
+ *         बान्की, श.प्र.मि., अनुच्छेद, त्रुटि and the like become Layout,
+ *         WPM, Passage, Errors, because that is how people actually say them
+ *   en  — every feature named in English
+ *
+ * Only the interface changes. The words and passages being typed are Nepali
+ * in every language: that is the test, not the interface.
+ *
+ * Keys are ASCII so the code stays greppable. One flat map per language
+ * rather than an i18n library: three tables, no framework.
  *
  * Abbreviations used:
  *   श.प्र.मि. = शब्द प्रति मिनेट (words per minute)
  */
-export const ne = {
+
+import { loadSettings, type UiLanguage } from "./settings";
+
+const NE = {
   // Identity
   appName: "फटाफट",
   tagline: "तपाईं कति फटाफट टाइप गर्नुहुन्छ?",
@@ -50,7 +60,7 @@ export const ne = {
   notInDictionary: "शब्दकोशमा छैन",
   didYouMean: "यो भन्नु भएको?",
 
-  // Layout variants (the open question — three word-area layouts)
+  // Layout variants
   layout: "बान्की",
   layoutWrapped: "पङ्क्ति",
   layoutFocus: "एक हरफ",
@@ -87,9 +97,138 @@ export const ne = {
   theme: "रङ",
   themeDark: "अँध्यारो",
   themeLight: "उज्यालो",
+  language: "भाषा",
   showKeyboard: "कीबोर्ड देखाउनु",
   on: "खुला",
   off: "बन्द",
 } as const;
 
-export type StringKey = keyof typeof ne;
+export type StringKey = keyof typeof NE;
+type Table = Readonly<Record<StringKey, string>>;
+
+const EN: Table = {
+  appName: "फटाफट", // the name stays Nepali in every language
+  tagline: "How fast do you type Nepali?",
+
+  modeRomanized: "Roman",
+  modePreeti: "Preeti",
+  modeFree: "Free",
+
+  time: "Time",
+  words: "Words",
+  seconds: "seconds",
+  settings: "Settings",
+  keyboard: "Keyboard",
+  passage: "Passage",
+
+  startHint: "Start typing",
+  restartHint: "Tab to restart · Shift+Tab for settings",
+
+  results: "Results",
+  grossWpm: "Gross speed",
+  netWpm: "Net speed",
+  wpmUnit: "WPM",
+  accuracy: "Accuracy",
+  errors: "Errors",
+  correctWords: "Correct words",
+  duration: "Duration",
+  mode: "Mode",
+  charAccuracy: "Key accuracy",
+  wordAccuracy: "Word accuracy",
+  restart: "Restart",
+  next: "Next",
+
+  notInDictionary: "Not in the dictionary",
+  didYouMean: "Did you mean?",
+
+  layout: "Layout",
+  layoutWrapped: "Lines",
+  layoutFocus: "Focus",
+  layoutPassage: "Passage",
+  layoutPassageHint: "Lok Sewa practice — a full passage",
+
+  remainingTime: "Time left",
+  remainingWords: "Words left",
+  typingArea: "Typing area",
+  typingAreaHint: "Type here. Tab or Esc restarts.",
+  progressLabel: "Progress",
+  tapToType: "Tap here to type",
+
+  reportCard: "Report card",
+  speedOverTime: "Speed over time",
+  wrongWordsTitle: "Wrong words",
+  expected: "Correct",
+  typedAs: "You typed",
+  noWrongWords: "Not a single mistake.",
+  share: "Share",
+  copied: "Copied",
+  shareLine: "I typed {wpm} WPM in Nepali — how fast are you?",
+  minuteShort: "min",
+  secondShort: "s",
+  wordsShort: "words",
+  comingSoon: "Coming soon",
+
+  skin: "Style",
+  skinAlive: "Lively",
+  skinSerious: "Exam",
+  theme: "Theme",
+  themeDark: "Dark",
+  themeLight: "Light",
+  language: "Language",
+  showKeyboard: "Show keyboard",
+  on: "On",
+  off: "Off",
+};
+
+/**
+ * Mixed: Nepali, except the words people find heavy or would say in English
+ * anyway. Short everyday Nepali (समय, शब्द, नतिजा, सही शब्द) stays.
+ */
+const MIX: Table = {
+  ...NE,
+  modeFree: "Free",
+
+  passage: "Passage",
+  restartHint: "Restart गर्न Tab · Settings मा जान Shift+Tab",
+
+  grossWpm: "Gross WPM",
+  netWpm: "Net WPM",
+  wpmUnit: "WPM",
+  accuracy: "Accuracy",
+  errors: "Errors",
+  duration: "समय",
+  mode: "Mode",
+  charAccuracy: "Key accuracy",
+  wordAccuracy: "Word accuracy",
+  restart: "Restart",
+
+  layout: "Layout",
+  layoutWrapped: "Lines",
+  layoutFocus: "Focus",
+  layoutPassage: "Passage",
+  layoutPassageHint: "लोक सेवा अभ्यास — पूरा Passage",
+
+  typingArea: "Typing area",
+  progressLabel: "Progress",
+
+  reportCard: "Result",
+  speedOverTime: "Speed graph",
+  share: "Share",
+  shareLine: "मैले {wpm} WPM टाइप गरें — तपाईं कति फटाफट?",
+
+  skin: "Style",
+  skinAlive: "Lively",
+  skinSerious: "Exam",
+  theme: "Theme",
+  themeDark: "Dark",
+  themeLight: "Light",
+  language: "Language",
+};
+
+export const TABLES: Readonly<Record<UiLanguage, Table>> = { ne: NE, mix: MIX, en: EN };
+
+/** The interface language, fixed for the page's life (changing it reloads). */
+export const LANGUAGE: UiLanguage = loadSettings().language;
+
+/** The active strings. Named `ne` for history: it was the only table. */
+export const ne: Table = TABLES[LANGUAGE];

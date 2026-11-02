@@ -29,7 +29,7 @@ import { KeyboardView } from "./keyboard";
 import { ProgressBar, heatFromWpm } from "./progress";
 import { renderResults } from "./results";
 import { loadSettings, saveSettings, type LayoutVariant, type Settings } from "./settings";
-import { ne } from "./strings";
+import { LANGUAGE, ne } from "./strings";
 import { FocusWordView } from "./words/focus";
 import { WrappedWordView } from "./words/wrapped";
 import type { WordView } from "./words/common";
@@ -92,6 +92,15 @@ export function startApp(root: HTMLElement): void {
   const resultsHost = el("div", { class: "results-host" });
 
   const controls = new ControlBar({
+    onLanguage: (language) => {
+      if (language === settings.language) return;
+      settings.language = language;
+      persist();
+      // Every label in the app is built once from the active table, so a new
+      // language is a fresh start. Settings are saved, so nothing is lost
+      // but the test in progress.
+      window.location.reload();
+    },
     onMode: (mode) => {
       if (mode === settings.mode) return;
       settings.mode = mode;
@@ -584,6 +593,12 @@ export function startApp(root: HTMLElement): void {
   applySkin();
   applyKeyboardVisibility();
   controls.setMode(settings.mode);
+  controls.setLanguage(settings.language);
+  // English labels read with an English voice; the Nepali words being typed
+  // keep the page's lang="ne".
+  if (LANGUAGE === "en") {
+    for (const node of [controls.el, hint, restartTouch, resultsHost]) node.lang = "en";
+  }
   controls.setLength(settings.length);
   controls.setVariant(settings.variant);
   rebuild();

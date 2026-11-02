@@ -1,15 +1,18 @@
 /**
- * Number and time formatting for a Nepali interface.
+ * Number and time formatting for the interface.
  *
- * Every digit the user sees is Devanagari, so formatting goes through here
- * rather than through `toLocaleString`, which would need a locale data set we
- * do not ship.
+ * Digits follow the interface language: Devanagari in Nepali and mixed,
+ * 0–9 in English. Formatting goes through here rather than through
+ * `toLocaleString`, which would need a locale data set we do not ship.
  */
+
+import { LANGUAGE, ne } from "./strings";
 
 const DEVANAGARI_DIGITS = "०१२३४५६७८९";
 
-/** 42 → "४२". Keeps separators, signs and the decimal point. */
+/** 42 → "४२" (or "42" in English). Keeps separators, signs and the decimal point. */
 export function neNum(value: number | string): string {
+  if (LANGUAGE === "en") return String(value);
   return String(value).replace(/[0-9]/g, (d) => DEVANAGARI_DIGITS[Number(d)] ?? d);
 }
 
@@ -34,10 +37,10 @@ export function neClock(ms: number): string {
 /** Seconds a test was configured for → "३० से." / "२ मि.". */
 export function neDuration(ms: number): string {
   const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${neNum(seconds)} से.`;
+  if (seconds < 60) return `${neNum(seconds)} ${ne.secondShort}`;
   const minutes = seconds / 60;
   const shown = Number.isInteger(minutes) ? String(minutes) : minutes.toFixed(1);
-  return `${neNum(shown)} मि.`;
+  return `${neNum(shown)} ${ne.minuteShort}`;
 }
 
 /** Clamp into 0–1. Used by the progress bar for both fill and heat. */
