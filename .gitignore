@@ -4,3 +4,6 @@ dist/
 *.local
 .vite/
 coverage/
+
+# downloaded skill packages
+*.tar.gz
