@@ -303,3 +303,27 @@ describe("subscribers", () => {
     expect(seen).toBe(2);
   });
 });
+
+describe("free mode (rules.md A9)", () => {
+  // A tiny stand-in dictionary: the session only needs a lookup.
+  const lookup = (typed: string) =>
+    typed === "mero"
+      ? { word: "मेरो", display: "मेरो" }
+      : { word: null, display: `?${typed}` };
+
+  it("has no targets and scores each word by the lookup", () => {
+    const { session } = makeSession({ free: lookup, length: { kind: "words", count: 2 } });
+    expect(session.state.targets).toEqual([]);
+    type(session, "mero xqz ");
+    expect(session.state.committed).toEqual([
+      { target: "मेरो", typed: "mero", correct: true },
+      { target: "?xqz", typed: "xqz", correct: false },
+    ]);
+    expect(session.state.status).toBe("finished");
+  });
+
+  it("gives no key hints", () => {
+    const { session } = makeSession({ free: lookup });
+    expect(session.state.nextKeys).toEqual([]);
+  });
+});

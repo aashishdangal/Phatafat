@@ -23,12 +23,19 @@ export type WordSource =
   | { kind: "words"; words: readonly string[] }
   | { kind: "passage"; text: string };
 
+export type FreeLookup = (typed: string) => { word: string | null; display: string };
+
 export interface SessionConfig {
   length: TestLength;
   source: WordSource;
   input: InputMethod;
-  /** Free mode has no targets: committed words are judged by dictionary. */
-  free?: boolean;
+  /**
+   * Free mode: no targets. Each committed word is judged by this lookup
+   * (rules.md A9), which the UI builds from the dictionary for the active
+   * input method. `word` is the dictionary word, or null if there is none;
+   * `display` is what to show for a word that was not found.
+   */
+  free?: FreeLookup;
   /** Injected for tests; defaults to Date.now. */
   now?: () => number;
   /** Injected for tests; defaults to Math.random. */
@@ -92,7 +99,7 @@ export class Session {
   private buildTargets(): void {
     const { source, length, free } = this.config;
 
-    if (free === true) {
+    if (free !== undefined) {
       this.targets = [];
       return;
     }
@@ -135,7 +142,7 @@ export class Session {
   }
 
   private syncTarget(): void {
-    this.input.setTarget(this.config.free === true ? null : this.currentTarget);
+    this.input.setTarget(this.config.free !== undefined ? null : this.currentTarget);
   }
 
   /* ---------------------------------------------------------------- *
@@ -184,11 +191,13 @@ export class Session {
 
   private commitWord(typed: string): void {
     const target = this.currentTarget;
-    if (target === null) {
-      // Free mode: the dictionary decides. Until skeleton.ts lands (day 3)
-      // nothing is validated, so a committed word is recorded as-is.
-      this.committed.push({ target: typed, typed, correct: true });
-    } else {
+    const free = this.config.free;
+    if (free !== undefined) {
+      // Free mode: the dictionary decides. A word it holds counts as that
+      // word (its graphemes score); one it does not is wrong, shown as typed.
+      const { word, display } = free(typed);
+      this.committed.push({ target: word ?? display, typed, correct: word !== null });
+    } else if (target !== null) {
       this.committed.push({ target, typed, correct: matchWord(typed, target) });
       this.index += 1;
       this.syncTarget();
@@ -237,7 +246,7 @@ export class Session {
       return;
     }
     // A passage can simply run out.
-    if (this.config.free !== true && this.index >= this.targets.length) {
+    if (this.config.free === undefined && this.index >= this.targets.length) {
       this.finish();
     }
   }

@@ -179,7 +179,7 @@ Check overrides **before** the pattern. Start small. Add a word only when a real
 
 No target exists, so we need a reverse lookup:
 
-1. **Skeleton key**: consonant classes only, all vowels and nasal/visarga signs dropped. Classes fold the same way as A3 (t/T together, s/sh/ष together, b/v/w together, ch/chh together, ph/f together). Aspirates stay separate.
+1. **Skeleton key**: consonant classes only, all vowels and nasal/visarga signs dropped. Classes fold the same way as A3 (t/T together, s/sh/ष together, b/v/w together, ch/chh/x together, ph/f together). Aspirates stay separate. Also dropped, because typists add or leave them out: n and m (anusvara; ञ ण न म), y (the optional glide, य), h (visarga; ह). ऋ / ृ count as r. Repeated classes count once, and a class right before its own aspirate is dropped (A4). The skeleton only picks candidates; the A1 matcher still decides, so dropping a letter can never let a wrong word pass.
 2. At startup, index every dictionary word under each skeleton its spellings can produce (most words have one; words with क्ष, ज्ञ, or व have a few).
 3. On commit: compute the typed word's skeleton, fetch that bucket, and run the A1 matcher against each candidate. Any match means the word is valid, and the first match is displayed.
 
