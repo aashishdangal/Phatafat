@@ -22,6 +22,7 @@ import { RomanizedInput } from "../input/romanized";
 import type { InputMethod, KeyEvent, KeyHint } from "../input/types";
 import { Session, type FreeLookup, type SessionState, type WordSource } from "../session/session";
 import passagesJson from "../data/passages.json";
+import lokSewaJson from "../data/loksewa-passages.json";
 import wordsJson from "../data/words.json";
 import type { WpmSample } from "./chart";
 import { ControlBar } from "./controls";
@@ -53,7 +54,16 @@ const TEST_LABEL: Record<TestType, string> = {
   words: ne.testWords,
   passage: ne.testPassage,
   free: ne.testFree,
+  loksewa: ne.testLokSewa,
 };
+
+/** Exam passages (~200 words): Lok Sewa types a whole one against the clock. */
+const LOKSEWA_PASSAGES = lokSewaJson.passages;
+/** Words per minute no exam candidate will outrun: sizes the chained text. */
+const EXAM_MAX_WPM = 100;
+const LOKSEWA_PREETI = LOKSEWA_PASSAGES.filter((p) =>
+  p.text.trim().split(/\s+/).every((w) => unicodeToPreeti(w) !== null),
+);
 
 export function startApp(root: HTMLElement): void {
   const settings = loadSettings();
@@ -106,18 +116,25 @@ export function startApp(root: HTMLElement): void {
     },
     onInput: (mode) => {
       if (mode === settings.mode) return;
-      settings.mode = mode;
+      // A deliberate choice: leaving the exam keeps it.
+      modeBeforeExam = null;
+      switchInput(mode);
       persist();
-      controls.setInput(mode);
-      // A new input brings its own keystroke handling and its own keyboard.
-      input = makeInput();
-      keyboard = new KeyboardView(input.layout);
-      keyboardHost.replaceChildren(keyboard.el);
       rebuild();
     },
     onTest: (test) => {
       if (test === settings.test) return;
+      const wasExam = settings.test === "loksewa";
       settings.test = test;
+      // The exam is typed in Preeti unless the user picks Roman afterwards.
+      // Leaving it gives back the input the user had before.
+      if (test === "loksewa" && settings.mode !== "preeti") {
+        modeBeforeExam = settings.mode;
+        switchInput("preeti");
+      } else if (wasExam && test !== "loksewa" && modeBeforeExam !== null) {
+        switchInput(modeBeforeExam);
+        modeBeforeExam = null;
+      }
       // A passage is timed: it has no word count of its own.
       if (test === "passage" && settings.length.kind === "words") {
         settings.length = { kind: "time", seconds: 60 };
@@ -125,6 +142,13 @@ export function startApp(root: HTMLElement): void {
       }
       persist();
       controls.setTest(test);
+      applySkin(); // Lok Sewa forces the Calm look
+      rebuild();
+    },
+    onLokSewa: (change) => {
+      settings.loksewa = { ...settings.loksewa, ...change };
+      persist();
+      controls.setLokSewa(settings.loksewa);
       rebuild();
     },
     onLength: (length) => {
@@ -166,9 +190,28 @@ export function startApp(root: HTMLElement): void {
   ]);
   root.replaceChildren(controls.el, main);
 
+  /** The input to give back when the exam is left; null when the user chose. */
+  let modeBeforeExam: Settings["mode"] | null = null;
+
+  /** A new input brings its own keystroke handling and its own keyboard. */
+  function switchInput(mode: Settings["mode"]): void {
+    settings.mode = mode;
+    controls.setInput(mode);
+    input = makeInput();
+    keyboard = new KeyboardView(input.layout);
+    keyboardHost.replaceChildren(keyboard.el);
+  }
+
   function persist(): void {
     saveSettings(settings satisfies Settings);
   }
+
+  /** Lok Sewa is typed in the Calm look whatever the setting says. */
+  function effectiveSkin(): Settings["skin"] {
+    return settings.test === "loksewa" ? "serious" : settings.skin;
+  }
+
+  const isExam = (): boolean => settings.test === "loksewa";
 
   /** Skin and theme together: both are a colour swap on <html>. */
   function applySkin(): void {
@@ -176,12 +219,13 @@ export function startApp(root: HTMLElement): void {
     // animate at once (better-ui).
     const html = document.documentElement;
     html.classList.add("no-transitions");
-    html.dataset.skin = settings.skin;
+    html.dataset.skin = effectiveSkin();
     html.dataset.theme = settings.theme;
     // Commit the new colours while transitions are off, so none of them
     // animates when the class comes off (better-ui theme-switch recipe).
     void document.body.offsetHeight;
-    controls.setSkin(settings.skin);
+    // The control shows the skin in use, which the exam may override.
+    controls.setSkin(effectiveSkin());
     controls.setTheme(settings.theme);
     // Mobile browser chrome follows the page background.
     const bg = getComputedStyle(html).getPropertyValue("--bg").trim();
@@ -215,11 +259,35 @@ export function startApp(root: HTMLElement): void {
     return { title: chosen?.title ?? "", text: chosen?.text ?? "" };
   }
 
+  /**
+   * The exam ends on the clock, not at the end of a passage, so passages are
+   * chained until even a fast typist cannot run out before time is up.
+   */
+  function pickExamText(): { title: string; text: string } {
+    // Never an empty exam: fall back to every passage if none suit Preeti.
+    const pool =
+      settings.mode === "preeti" && LOKSEWA_PREETI.length > 0 ? LOKSEWA_PREETI : LOKSEWA_PASSAGES;
+    const needed = settings.loksewa.minutes * EXAM_MAX_WPM;
+    const order = [...pool];
+    for (let j = order.length - 1; j > 0; j -= 1) {
+      const r = Math.floor(Math.random() * (j + 1)); // Fisher-Yates
+      [order[j], order[r]] = [order[r]!, order[j]!];
+    }
+    const texts: string[] = [];
+    let words = 0;
+    for (let k = 0; words < needed && order.length > 0; k += 1) {
+      const text = order[k % order.length]?.text.trim() ?? "";
+      texts.push(text);
+      words += text.split(/\s+/).length;
+    }
+    return { title: order[0]?.title ?? "", text: texts.join(" ") };
+  }
+
   function makeSource(): WordSource {
-    if (settings.test !== "passage") {
+    if (settings.test !== "passage" && !isExam()) {
       return { kind: "words", words: settings.mode === "preeti" ? PREETI_WORDS : COMMON_WORDS };
     }
-    const passage = pickPassage();
+    const passage = isExam() ? pickExamText() : pickPassage();
     passageTitle = passage.title;
     return { kind: "passage", text: passage.text };
   }
@@ -254,7 +322,7 @@ export function startApp(root: HTMLElement): void {
 
   function makeView(): WordView {
     if (settings.test === "free") return new FreeWordView();
-    if (settings.test === "passage") {
+    if (settings.test === "passage" || isExam()) {
       return new WrappedWordView({
           visibleLines: 5,
           keepLine: 2,
@@ -279,12 +347,14 @@ export function startApp(root: HTMLElement): void {
     // half-typed keys must not leak into the next test.
     input.reset();
     session = new Session({
-      length: settings.length,
+      length: isExam() ? { kind: "time", seconds: settings.loksewa.minutes * 60 } : settings.length,
       source,
       input,
       free: settings.test === "free" ? freeLookup : undefined,
     });
     if (settings.test === "free") loadDictionary();
+    // Lok Sewa shows the countdown only: no fill, no speed, no error marks.
+    progress.el.classList.toggle("pb--exam", isExam());
     session.subscribe(onState);
     suspendUpdates = false;
 
@@ -312,7 +382,7 @@ export function startApp(root: HTMLElement): void {
   /** Same test config, fresh words. Tab / Esc / the results button. */
   function restart(): void {
     stopLoop();
-    if (settings.test === "passage") {
+    if (settings.test === "passage" || isExam()) {
       // A new passage each time, so a restart is a new reading.
       rebuild();
     } else {
@@ -366,7 +436,8 @@ export function startApp(root: HTMLElement): void {
   function syncProgress(state: SessionState): void {
     const fraction = progressFraction(state);
     progress.setProgress(fraction);
-    progress.setHeat(heatFromWpm(liveWpm(state)));
+    // Lok Sewa: no live speed while typing, as in the exam.
+    progress.setHeat(isExam() ? 0 : heatFromWpm(liveWpm(state)));
     progress.setRemaining(state.remainingMs, state.remainingWords);
 
     // One notch per wrong word, at the point in the run where it happened.
@@ -416,9 +487,11 @@ export function startApp(root: HTMLElement): void {
     if (results === null) return;
     root.classList.add("is-finished");
     const lengthLabel =
-      settings.length.kind === "time"
-        ? neDuration(settings.length.seconds * 1000)
-        : `${neNum(settings.length.count)} ${ne.wordsShort}`;
+      isExam()
+        ? neDuration(settings.loksewa.minutes * 60_000)
+        : settings.length.kind === "time"
+          ? neDuration(settings.length.seconds * 1000)
+          : `${neNum(settings.length.count)} ${ne.wordsShort}`;
     // Close the line off at the final value, and give a very short test the
     // two points a line needs.
     const line: WpmSample[] = [{ t: 0, wpm: 0 }, ...samples];
@@ -431,6 +504,7 @@ export function startApp(root: HTMLElement): void {
         modeLabel: `${settings.mode === "preeti" ? ne.modePreeti : ne.modeRomanized} · ${TEST_LABEL[settings.test]}`,
         lengthLabel,
         onRestart: restart,
+        examTarget: isExam() ? settings.loksewa.target : undefined,
       }),
     );
     setText(hint, restartHint());
@@ -478,6 +552,10 @@ export function startApp(root: HTMLElement): void {
 
   function isControl(target: EventTarget | null): boolean {
     return target instanceof HTMLElement && target !== typebox && target.closest("button") !== null;
+  }
+
+  function backspaceBlocked(): boolean {
+    return isExam() && settings.loksewa.noBackspace;
   }
 
   /** Timestamp of the last keystroke the session took from a keydown. */
@@ -561,6 +639,14 @@ export function startApp(root: HTMLElement): void {
       return;
     }
 
+    // Lok Sewa without Backspace: a mistake stays, as on strict exam
+    // software. The key flashes red so the refusal is visible.
+    if (event.key === "Backspace" && backspaceBlocked()) {
+      event.preventDefault();
+      keyboard.flash("Backspace", false);
+      return;
+    }
+
     // Tab restarts from the typing surface and from the results card.
     // Shift+Tab is left to the browser, so focus can leave the typing box
     // for the header controls (WCAG 2.1.1, no keyboard trap). On a header
@@ -602,6 +688,7 @@ export function startApp(root: HTMLElement): void {
       return;
     }
     if (inputEvent.inputType.startsWith("deleteContent")) {
+      if (backspaceBlocked()) return;
       feed({ key: "Backspace", code: "Backspace", shiftKey: false });
     }
   });
@@ -648,6 +735,7 @@ export function startApp(root: HTMLElement): void {
   applyKeyboardVisibility();
   controls.setInput(settings.mode);
   controls.setTest(settings.test);
+  controls.setLokSewa(settings.loksewa);
   controls.setLanguage(settings.language);
   // English labels read with an English voice; the Nepali words being typed
   // keep the page's lang="ne".

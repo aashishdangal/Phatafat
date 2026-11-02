@@ -250,8 +250,16 @@ function group(alternatives: readonly string[], optional = false): string {
 /** Optional inherent `a` after a bare consonant (A4). */
 const INHERENT_A = "a?";
 
-function isConsonant(ch: string | undefined): boolean {
-  return ch !== undefined && CONSONANTS.has(ch);
+/**
+ * Two different consonants typed identically: the same spellings in the same
+ * order (ड/द → `d`, ट/त → `t`, स/श/ष → `s`/`sh`). Order matters: ब [b,v,w]
+ * and व [v,w,b] are typed differently (ब्व is `bw`), so they never qualify.
+ */
+function typedAlike(a: string, b: string | undefined): boolean {
+  if (b === undefined) return false;
+  const x = CONSONANTS.get(a);
+  const y = CONSONANTS.get(b);
+  return x !== undefined && y !== undefined && x.join() === y.join();
 }
 
 /**
@@ -262,6 +270,8 @@ export function compileTargetSource(normalizedTarget: string): string {
   const chars = [...normalizedTarget];
   let out = "";
   let i = 0;
+  /** A4: the consonant after a typed-alike one (ड्द) is optional. */
+  let optionalNext = false;
 
   /** A4: what follows the consonant that ends at index `i`. */
   const consonantTail = (): void => {
@@ -292,6 +302,7 @@ export function compileTargetSource(normalizedTarget: string): string {
       const slice = chars.slice(i, i + len).join("");
       const alts = CLUSTERS.get(slice);
       if (alts !== undefined) {
+        optionalNext = false;
         out += group(alts);
         i += len;
         consonantTail();
@@ -307,7 +318,8 @@ export function compileTargetSource(normalizedTarget: string): string {
       // the aspirate after it stays required, so d/dh folding is untouched.
       const aspirateGeminate =
         chars[i + 1] === HALANT && chars[i + 2] !== undefined && ASPIRATE_OF.get(ch) === chars[i + 2];
-      out += group(consonant, aspirateGeminate);
+      out += group(consonant, aspirateGeminate || optionalNext);
+      optionalNext = false;
       i += 1;
       if (aspirateGeminate) {
         i += 1; // the halant; the aspirate is compiled on the next pass
@@ -315,8 +327,12 @@ export function compileTargetSource(normalizedTarget: string): string {
       }
       // A4 geminates: consonant + halant + the same consonant counts once,
       // matching the consonant-collapsed input (पक्का → `pakka` and `paka`).
-      if (chars[i] === HALANT && chars[i + 1] === ch && isConsonant(chars[i + 1])) {
+      if (chars[i] === HALANT && chars[i + 1] === ch) {
         i += 2;
+      } else if (chars[i] === HALANT && typedAlike(ch, chars[i + 1])) {
+        // A different consonant typed the same way (जोड्दा `jodda` collapses
+        // to `joda`): the second is optional, so `shs` for स्श still matches.
+        optionalNext = true;
       }
       consonantTail();
       continue;

@@ -1506,3 +1506,62 @@
     height: 44px;
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Lok Sewa
+ * ------------------------------------------------------------------ */
+
+.testbar__label {
+  padding-inline: var(--sp-1) 0;
+  font-size: var(--text-xs);
+  color: var(--fg-muted);
+}
+
+/* Exam: the countdown stays; the bar, its speed colour and the error
+   marks go. Hidden, not removed, so nothing on the page moves. */
+.pb--exam .pb-track {
+  visibility: hidden;
+}
+
+/* The verdict: the word carries it, the colour only repeats it. */
+.rc-verdict {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-1);
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--radius-inner);
+  text-align: center;
+}
+
+.rc-verdict.is-pass {
+  background: var(--good-wash);
+}
+
+.rc-verdict.is-short {
+  background: var(--crimson-wash);
+}
+
+.rc-verdict-word {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.rc-verdict.is-pass .rc-verdict-word {
+  color: var(--good);
+}
+
+.rc-verdict.is-short .rc-verdict-word {
+  color: var(--accent-text);
+}
+
+.rc-verdict-line {
+  font-size: var(--text-sm);
+  color: var(--fg);
+}
+
+.rc-verdict-note {
+  font-size: var(--text-xs);
+  color: var(--fg-muted);
+}

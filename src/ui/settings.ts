@@ -10,8 +10,22 @@ import type { TestLength } from "../session/session";
 
 /** How a word-list test is laid out on screen: a display preference. */
 export type LayoutVariant = "wrapped" | "focus";
-/** What is being typed. Lok Sewa joins this list when it is built. */
-export type TestType = "words" | "passage" | "free";
+/** What is being typed. */
+export type TestType = "words" | "passage" | "free" | "loksewa";
+
+/**
+ * Lok Sewa exam conditions. Official rules differ by post and notice, so
+ * these are defaults the user adjusts to match theirs: Preeti, 5 minutes,
+ * a 25 net WPM target, no Backspace.
+ */
+export interface LokSewaConfig {
+  minutes: number;
+  target: number;
+  noBackspace: boolean;
+}
+
+export const LOKSEWA_MINUTES = [5, 10];
+export const LOKSEWA_TARGETS = [20, 25, 30, 35];
 export type Skin = "alive" | "serious";
 export type Theme = "dark" | "light";
 export type InputMode = "romanized" | "preeti";
@@ -24,6 +38,7 @@ export interface Settings {
   mode: InputMode;
   /** What you type. */
   test: TestType;
+  loksewa: LokSewaConfig;
   language: UiLanguage;
   variant: LayoutVariant;
   length: TestLength;
@@ -44,6 +59,7 @@ export function defaultSettings(): Settings {
   return {
     mode: "romanized",
     test: "words",
+    loksewa: { minutes: 5, target: 25, noBackspace: true },
     language: "mix", // the middle of the switch is the default
     variant: "wrapped",
     length: { kind: "time", seconds: 30 },
@@ -54,7 +70,17 @@ export function defaultSettings(): Settings {
 }
 
 const VARIANTS: LayoutVariant[] = ["wrapped", "focus"];
-const TESTS: TestType[] = ["words", "passage", "free"];
+const TESTS: TestType[] = ["words", "passage", "free", "loksewa"];
+
+function parseLokSewa(value: unknown, base: LokSewaConfig): LokSewaConfig {
+  if (typeof value !== "object" || value === null) return base;
+  const raw = value as Partial<Record<keyof LokSewaConfig, unknown>>;
+  return {
+    minutes: LOKSEWA_MINUTES.includes(raw.minutes as number) ? (raw.minutes as number) : base.minutes,
+    target: LOKSEWA_TARGETS.includes(raw.target as number) ? (raw.target as number) : base.target,
+    noBackspace: typeof raw.noBackspace === "boolean" ? raw.noBackspace : base.noBackspace,
+  };
+}
 const TIMES = [15, 30, 60, 120];
 const COUNTS = [10, 25, 50];
 
@@ -94,7 +120,9 @@ export function loadSettings(): Settings {
           ? "free"
           : data.variant === "passage"
             ? "passage"
-            : base.test,      language: UI_LANGUAGES.includes(data.language as UiLanguage)
+            : base.test,
+      loksewa: parseLokSewa(data.loksewa, base.loksewa),
+      language: UI_LANGUAGES.includes(data.language as UiLanguage)
         ? (data.language as UiLanguage)
         : base.language,
       variant: VARIANTS.includes(data.variant as LayoutVariant)

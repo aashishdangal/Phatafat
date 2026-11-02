@@ -18,13 +18,16 @@
 
 import type { TestLength } from "../session/session";
 import { el, toggleClass } from "./dom";
-import { neNum } from "./format";
+import { neDuration, neNum } from "./format";
 import { Segmented } from "./segmented";
 import { ne } from "./strings";
 import {
   LENGTH_OPTIONS,
   type InputMode,
   type LayoutVariant,
+  type LokSewaConfig,
+  LOKSEWA_MINUTES,
+  LOKSEWA_TARGETS,
   type Skin,
   type TestType,
   type Theme,
@@ -40,11 +43,12 @@ export interface ControlHandlers {
   onSkin: (skin: Skin) => void;
   onTheme: (theme: Theme) => void;
   onLanguage: (language: UiLanguage) => void;
+  onLokSewa: (change: Partial<LokSewaConfig>) => void;
 }
 
 type Unit = "time" | "words";
-/** The bar also shows Lok Sewa, greyed out until it exists. */
-type TestChoice = TestType | "loksewa";
+type TestChoice = TestType;
+type Allow = "allowed" | "off";
 
 const SVG = "http://www.w3.org/2000/svg";
 
@@ -100,6 +104,12 @@ export class ControlBar {
   private readonly skin: Segmented<Skin>;
   private readonly language: Segmented<UiLanguage>;
   private readonly layoutRow: HTMLElement;
+  private readonly backspaceRow: HTMLElement;
+  private readonly backspace: Segmented<Allow>;
+  private readonly examMinutes: Segmented<string>;
+  private readonly examTarget: Segmented<string>;
+  private readonly examGroup: HTMLElement;
+  private lengthGroup!: HTMLElement;
   private readonly quick: HTMLElement;
   private panelOpen = false;
   private themeValue: Theme = "dark";
@@ -122,12 +132,34 @@ export class ControlBar {
         { value: "words", label: ne.testWords },
         { value: "passage", label: ne.testPassage, tip: ne.layoutPassageHint },
         { value: "free", label: ne.testFree },
-        { value: "loksewa", label: ne.testLokSewa, tip: ne.comingSoon, disabled: true },
+        { value: "loksewa", label: ne.testLokSewa, tip: ne.lokSewaHint },
       ],
-      (test) => {
-        if (test !== "loksewa") handlers.onTest(test);
-      },
+      handlers.onTest,
     );
+
+    // Lok Sewa replaces the length controls with exam duration and target.
+    this.examMinutes = new Segmented<string>(
+      ne.duration,
+      LOKSEWA_MINUTES.map((m) => ({
+        value: String(m),
+        label: neDuration(m * 60_000),
+      })),
+      (m) => handlers.onLokSewa({ minutes: Number(m) }),
+    );
+    this.examTarget = new Segmented<string>(
+      ne.target,
+      LOKSEWA_TARGETS.map((t) => ({
+        value: String(t),
+        label: neNum(t),
+        name: `${ne.target} ${neNum(t)} ${ne.wpmUnit}`,
+      })),
+      (t) => handlers.onLokSewa({ target: Number(t) }),
+    );
+    this.examGroup = el("div", { class: "testbar__length" }, [
+      this.examMinutes.el,
+      el("span", { class: "testbar__label", text: ne.target, "aria-hidden": "true" }),
+      this.examTarget.el,
+    ]);
 
     this.unit = new Segmented<Unit>(
       ne.length,
@@ -167,7 +199,12 @@ export class ControlBar {
       divider(),
       this.test.el,
       divider(),
-      el("div", { class: "testbar__length" }, [this.unit.el, this.times.el, this.counts.el]),
+      (this.lengthGroup = el("div", { class: "testbar__length" }, [
+        this.unit.el,
+        this.times.el,
+        this.counts.el,
+      ])),
+      this.examGroup,
     ]);
 
     /* ---------------- quick settings: always in view ---------------- */
@@ -241,11 +278,22 @@ export class ControlBar {
     const row = (label: string, control: HTMLElement): HTMLElement =>
       el("div", { class: "settings-row" }, [el("span", { class: "settings-row__label", text: label }), control]);
 
+    this.backspace = new Segmented<Allow>(
+      ne.backspace,
+      [
+        { value: "allowed", label: ne.allowed },
+        { value: "off", label: ne.off },
+      ],
+      (v) => handlers.onLokSewa({ noBackspace: v === "off" }),
+      "panel",
+    );
+
     this.layoutRow = row(ne.layout, this.layout.el);
+    this.backspaceRow = row(ne.backspace, this.backspace.el);
     this.panel = el(
       "div",
       { class: "settings-panel", id: "settings-panel", role: "dialog", "aria-label": ne.settings },
-      [this.layoutRow, row(ne.skin, this.skin.el)],
+      [this.layoutRow, this.backspaceRow, row(ne.skin, this.skin.el)],
     );
 
     this.settingsButton = el(
@@ -314,6 +362,7 @@ export class ControlBar {
     if (!open) return;
     // Thumbs inside a closed panel could not be measured; place them now.
     this.layout.refresh();
+    this.backspace.refresh();
     this.skin.refresh();
     this.panel.querySelector<HTMLElement>('.settings-row:not([hidden]) [aria-checked="true"]')?.focus();
   }
@@ -330,6 +379,23 @@ export class ControlBar {
     this.unit.setDisabled("words", test === "passage");
     // Lines / Focus lay out a word list: meaningless for a passage or Free.
     this.layoutRow.hidden = test !== "words";
+    // Lok Sewa: exam duration and target instead of a length; its own
+    // Backspace rule; and the Calm look, which the exam forces.
+    const exam = test === "loksewa";
+    this.lengthGroup.hidden = exam;
+    this.examGroup.hidden = !exam;
+    this.backspaceRow.hidden = !exam;
+    this.skin.setDisabled("alive", exam);
+    // Thumbs set while their group was hidden could not be measured.
+    for (const control of exam ? [this.examMinutes, this.examTarget] : [this.unit, this.times, this.counts]) {
+      control.refresh();
+    }
+  }
+
+  setLokSewa(config: LokSewaConfig): void {
+    this.examMinutes.set(String(config.minutes));
+    this.examTarget.set(String(config.target));
+    this.backspace.set(config.noBackspace ? "off" : "allowed");
   }
 
   setLength(length: TestLength): void {

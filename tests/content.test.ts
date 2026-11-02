@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import words from "../src/data/words.json";
 import passages from "../src/data/passages.json";
+import lokSewa from "../src/data/loksewa-passages.json";
+import { preetiToUnicode, unicodeToPreeti } from "../src/engine/preeti";
 import { matchWord } from "../src/engine/matcher";
 import { hintSpelling } from "../src/engine/hint";
 
@@ -80,5 +82,49 @@ describe("passages", () => {
       }
     }
     expect(unplayable).toEqual([]);
+  });
+});
+
+describe("Lok Sewa passages", () => {
+  const exam = (lokSewa.passages as { id: string; title: string; text: string }[]);
+  const wordsOf = (t: string) => t.trim().split(/\s+/);
+
+  it("has many, each with a unique id and a title", () => {
+    expect(exam.length).toBeGreaterThanOrEqual(20);
+    expect(new Set(exam.map((p) => p.id)).size).toBe(exam.length);
+    for (const p of exam) {
+      expect(p.id).toMatch(/^[a-z0-9-]+$/);
+      expect(p.title.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("is exam length: about 200 words each", () => {
+    const off = exam
+      .map((p) => ({ id: p.id, words: wordsOf(p.text).length }))
+      .filter(({ words }) => words < 140 || words > 260);
+    expect(off).toEqual([]);
+  });
+
+  it("is typeable in Roman: every word accepts its hint spelling", () => {
+    const bad: { passage: string; word: string; hint: string }[] = [];
+    for (const p of exam) {
+      for (const word of wordsOf(p.text)) {
+        const hint = hintSpelling(word);
+        if (hint === "" || !matchWord(hint, word)) bad.push({ passage: p.id, word, hint });
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it("is typeable in Preeti: every word has keystrokes that read back", () => {
+    const bad: { passage: string; word: string }[] = [];
+    for (const p of exam) {
+      for (const word of wordsOf(p.text)) {
+        const keys = unicodeToPreeti(word);
+        const back = keys === null ? null : preetiToUnicode(keys);
+        if (back !== word.normalize("NFC").replace(/[‌‍]/g, "")) bad.push({ passage: p.id, word });
+      }
+    }
+    expect(bad).toEqual([]);
   });
 });

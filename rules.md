@@ -111,6 +111,8 @@ Examples: `गर्नु → g a? r n (u|oo)` · `नमस्ते → n a? 
 
 **Geminates:** a consonant + halant + the *same* consonant (`क्क`, `द्द`, `त्त`) counts once, matching the collapsed input. `पक्का` accepts `pakka` and `paka`.
 
+**Typed-alike pairs:** a consonant + halant + a *different* consonant with the same spellings in the same order (`ड्द`, `ट्त`, `ण्न`, `स्श`, `ष्स`, …) makes the second consonant optional, so the collapsed input still matches: `जोड्दा` accepts `jodda` and `joda`. Order matters: ब (`b`, `v`, `w`) and व (`v`, `w`, `b`) differ, so `ब्व` needs both letters: `ब्वाँसो` accepts `bwaaso` and `bvaaso`.
+
 **Aspirate geminates:** a stop + halant + its *own* aspirate (`द्ध`, `त्थ`, `च्छ`, `क्ख`, `ब्भ`, …) makes the first consonant optional. Without this the word is untypeable: `buddha` collapses to `budha` (A2), but the target would demand `d` + `dh`. The aspirate itself stays required, so aspirate folding is not loosened: `बुद्ध` accepts `buddha` and `budha`, rejects `buda`.
 
 ### A5. Vowels

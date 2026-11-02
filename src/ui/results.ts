@@ -22,6 +22,8 @@ export interface ResultsOptions {
   /** e.g. "३० से." */
   lengthLabel: string;
   onRestart: () => void;
+  /** Lok Sewa: the net WPM target the result is judged against. */
+  examTarget?: number;
 }
 
 function bigStat(label: string, value: string): HTMLElement {
@@ -40,7 +42,33 @@ function row(label: string, value: string): HTMLElement {
 }
 
 export function renderResults(options: ResultsOptions): HTMLElement {
-  const { results, samples, modeLabel, lengthLabel, onRestart } = options;
+  const { results, samples, modeLabel, lengthLabel, onRestart, examTarget } = options;
+
+  // Lok Sewa: pass or not yet, judged on net speed against the target. The
+  // word carries the verdict, not the colour alone.
+  const verdict =
+    examTarget === undefined
+      ? null
+      : (() => {
+          const passed = Math.round(results.netWpm) >= examTarget;
+          return el(
+            "div",
+            {
+              class: `rc-verdict rc-stage ${passed ? "is-pass" : "is-short"}`,
+              "data-stage": "1",
+            },
+            [
+              el("div", { class: "rc-verdict-word", text: passed ? ne.verdictPass : ne.verdictNotYet }),
+              el("div", {
+                class: "rc-verdict-line tnum",
+                text: ne.verdictLine
+                  .replace("{target}", neNum(examTarget))
+                  .replace("{net}", neInt(results.netWpm)),
+              }),
+              el("div", { class: "rc-verdict-note", text: ne.examNote }),
+            ],
+          );
+        })();
 
   const heading = el("div", { class: "rc-head rc-stage", "data-stage": "0" }, [
     el("div", { class: "rc-stamp", text: ne.appName }),
@@ -120,6 +148,7 @@ export function renderResults(options: ResultsOptions): HTMLElement {
 
   const card = el("div", { class: "report-card", role: "group", "aria-label": ne.results }, [
     heading,
+    ...(verdict === null ? [] : [verdict]),
     speeds,
     table,
     chart,

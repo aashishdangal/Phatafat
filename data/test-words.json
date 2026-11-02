@@ -79,5 +79,9 @@
   {"target":"क्षमता","accept":["xyamata","xamata","kshamata","chhyamata","kxamata"],"reject":["samata","yamata"]},
   {"target":"नेपाल","accept":["नेपाल"],"reject":["नेपल","नपाल","नेपाली"]},
   {"target":"गर्‍यो","accept":["गर्यो","गर्‍यो"],"reject":["गरियो"]},
-  {"target":"हो।","accept":["हो।","हो"],"reject":["हा"]}
+  {"target":"हो।","accept":["हो।","हो"],"reject":["हा"]},
+  {"target":"जोड्दा","accept":["jodda","joda","jodaa"],"reject":["jota","jodha"]},
+  {"target":"बढ्दो","accept":["badhdo"],"reject":["bado","badho"]},
+  {"target":"ब्वाँसो","accept":["bwaaso","bvaaso","bwaso"],"reject":["bwaato"]},
+  {"target":"जिम्बाब्वे","accept":["jimbaabwe","jimbabwe","zimbabwe"],"reject":["jimbaabe"]}
 ]
