@@ -206,7 +206,7 @@ export class ControlBar {
       ne.language,
       [
         { value: "ne", label: "ने", name: "ने — नेपाली", tip: "नेपाली" },
-        { value: "mix", label: "ने+En", name: "ने+En — नेपाली + English", tip: "नेपाली + English" },
+        { value: "mix", label: "मिश्र", name: "मिश्र — नेपाली + English", tip: "नेपाली + English" },
         { value: "en", label: "En", name: "En — English", tip: "English" },
       ],
       (language) => {
