@@ -15,10 +15,12 @@
 import { countGraphemes } from "../engine/scoring";
 import { codeForChar } from "../engine/hint";
 import { charForAltCode, keyFor, unicodeToPreeti } from "../engine/preeti";
+import { toDevanagari } from "../engine/preview";
+import { createDictionary, type Dictionary } from "../engine/skeleton";
 import { PreetiInput } from "../input/preeti";
 import { RomanizedInput } from "../input/romanized";
 import type { InputMethod, KeyEvent, KeyHint } from "../input/types";
-import { Session, type SessionState, type WordSource } from "../session/session";
+import { Session, type FreeLookup, type SessionState, type WordSource } from "../session/session";
 import passagesJson from "../data/passages.json";
 import wordsJson from "../data/words.json";
 import type { WpmSample } from "./chart";
@@ -28,9 +30,10 @@ import { clamp01, neDuration, neInt, neNum, nePercent } from "./format";
 import { KeyboardView } from "./keyboard";
 import { ProgressBar, heatFromWpm } from "./progress";
 import { renderResults } from "./results";
-import { loadSettings, saveSettings, type LayoutVariant, type Settings } from "./settings";
+import { loadSettings, saveSettings, type Settings, type TestType } from "./settings";
 import { LANGUAGE, ne } from "./strings";
 import { FocusWordView } from "./words/focus";
+import { FreeWordView } from "./words/free";
 import { WrappedWordView } from "./words/wrapped";
 import type { WordView } from "./words/common";
 
@@ -46,10 +49,10 @@ const PREETI_PASSAGES = PASSAGES.filter((p) =>
   p.text.trim().split(/\s+/).every((w) => unicodeToPreeti(w) !== null),
 );
 
-const VARIANT_LABEL: Record<LayoutVariant, string> = {
-  wrapped: ne.layoutWrapped,
-  focus: ne.layoutFocus,
-  passage: ne.layoutPassage,
+const TEST_LABEL: Record<TestType, string> = {
+  words: ne.testWords,
+  passage: ne.testPassage,
+  free: ne.testFree,
 };
 
 export function startApp(root: HTMLElement): void {
@@ -101,15 +104,27 @@ export function startApp(root: HTMLElement): void {
       // but the test in progress.
       window.location.reload();
     },
-    onMode: (mode) => {
+    onInput: (mode) => {
       if (mode === settings.mode) return;
       settings.mode = mode;
       persist();
-      controls.setMode(mode);
-      // A new mode brings its own keystroke handling and its own keyboard.
+      controls.setInput(mode);
+      // A new input brings its own keystroke handling and its own keyboard.
       input = makeInput();
       keyboard = new KeyboardView(input.layout);
       keyboardHost.replaceChildren(keyboard.el);
+      rebuild();
+    },
+    onTest: (test) => {
+      if (test === settings.test) return;
+      settings.test = test;
+      // A passage is timed: it has no word count of its own.
+      if (test === "passage" && settings.length.kind === "words") {
+        settings.length = { kind: "time", seconds: 60 };
+        controls.setLength(settings.length);
+      }
+      persist();
+      controls.setTest(test);
       rebuild();
     },
     onLength: (length) => {
@@ -118,10 +133,10 @@ export function startApp(root: HTMLElement): void {
       controls.setLength(length);
       rebuild();
     },
-    onVariant: (variant) => {
-      settings.variant = variant;
+    onLayout: (layout) => {
+      settings.variant = layout;
       persist();
-      controls.setVariant(variant);
+      controls.setLayout(layout);
       rebuild();
     },
     onKeyboard: (show) => {
@@ -163,6 +178,9 @@ export function startApp(root: HTMLElement): void {
     html.classList.add("no-transitions");
     html.dataset.skin = settings.skin;
     html.dataset.theme = settings.theme;
+    // Commit the new colours while transitions are off, so none of them
+    // animates when the class comes off (better-ui theme-switch recipe).
+    void document.body.offsetHeight;
     controls.setSkin(settings.skin);
     controls.setTheme(settings.theme);
     // Mobile browser chrome follows the page background.
@@ -198,7 +216,7 @@ export function startApp(root: HTMLElement): void {
   }
 
   function makeSource(): WordSource {
-    if (settings.variant !== "passage") {
+    if (settings.test !== "passage") {
       return { kind: "words", words: settings.mode === "preeti" ? PREETI_WORDS : COMMON_WORDS };
     }
     const passage = pickPassage();
@@ -206,17 +224,47 @@ export function startApp(root: HTMLElement): void {
     return { kind: "passage", text: passage.text };
   }
 
+  /* ---------------- free typing ---------------- */
+
+  /**
+   * The dictionary is ~160 KB compressed, so it loads only when Free is first
+   * opened, as its own chunk, and is indexed once (rules.md A9).
+   */
+  let dictionary: Dictionary | null = null;
+  let dictionaryLoading = false;
+
+  function loadDictionary(): void {
+    if (dictionary !== null || dictionaryLoading) return;
+    dictionaryLoading = true;
+    setText(hint, ne.loadingDictionary);
+    void import("../data/dictionary.json").then((module) => {
+      dictionary = createDictionary(module.default.words);
+      dictionaryLoading = false;
+      if (session.state.status !== "running") setText(hint, idleHint());
+    });
+  }
+
+  /** Free mode's judge: the dictionary word the typed word stands for. */
+  const freeLookup: FreeLookup = (typed) => {
+    if (settings.mode === "preeti") {
+      return { word: dictionary?.findDevanagari(typed) ?? null, display: typed };
+    }
+    return { word: dictionary?.findRomanized(typed) ?? null, display: toDevanagari(typed) };
+  };
+
   function makeView(): WordView {
-    switch (settings.variant) {
-      case "focus":
-        return new FocusWordView();
-      case "passage":
-        return new WrappedWordView({
+    if (settings.test === "free") return new FreeWordView();
+    if (settings.test === "passage") {
+      return new WrappedWordView({
           visibleLines: 5,
           keepLine: 2,
           variantClass: "words--passage",
-          title: passageTitle,
-        });
+        title: passageTitle,
+      });
+    }
+    switch (settings.variant) {
+      case "focus":
+        return new FocusWordView();
       default:
         return new WrappedWordView({ visibleLines: 3, keepLine: 1, variantClass: "words--wrapped" });
     }
@@ -230,7 +278,13 @@ export function startApp(root: HTMLElement): void {
     // A new session reuses the input method, so clear what it was holding:
     // half-typed keys must not leak into the next test.
     input.reset();
-    session = new Session({ length: settings.length, source, input });
+    session = new Session({
+      length: settings.length,
+      source,
+      input,
+      free: settings.test === "free" ? freeLookup : undefined,
+    });
+    if (settings.test === "free") loadDictionary();
     session.subscribe(onState);
     suspendUpdates = false;
 
@@ -258,7 +312,7 @@ export function startApp(root: HTMLElement): void {
   /** Same test config, fresh words. Tab / Esc / the results button. */
   function restart(): void {
     stopLoop();
-    if (settings.variant === "passage") {
+    if (settings.test === "passage") {
       // A new passage each time, so a restart is a new reading.
       rebuild();
     } else {
@@ -374,7 +428,7 @@ export function startApp(root: HTMLElement): void {
       renderResults({
         results,
         samples: line,
-        modeLabel: `${settings.mode === "preeti" ? ne.modePreeti : ne.modeRomanized} · ${VARIANT_LABEL[settings.variant]}`,
+        modeLabel: `${settings.mode === "preeti" ? ne.modePreeti : ne.modeRomanized} · ${TEST_LABEL[settings.test]}`,
         lengthLabel,
         onRestart: restart,
       }),
@@ -592,7 +646,8 @@ export function startApp(root: HTMLElement): void {
 
   applySkin();
   applyKeyboardVisibility();
-  controls.setMode(settings.mode);
+  controls.setInput(settings.mode);
+  controls.setTest(settings.test);
   controls.setLanguage(settings.language);
   // English labels read with an English voice; the Nepali words being typed
   // keep the page's lang="ne".
@@ -600,7 +655,7 @@ export function startApp(root: HTMLElement): void {
     for (const node of [controls.el, hint, restartTouch, resultsHost]) node.lang = "en";
   }
   controls.setLength(settings.length);
-  controls.setVariant(settings.variant);
+  controls.setLayout(settings.variant);
   rebuild();
   focusTypebox();
 }

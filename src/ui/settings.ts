@@ -8,7 +8,10 @@
 
 import type { TestLength } from "../session/session";
 
-export type LayoutVariant = "wrapped" | "focus" | "passage";
+/** How a word-list test is laid out on screen: a display preference. */
+export type LayoutVariant = "wrapped" | "focus";
+/** What is being typed. Lok Sewa joins this list when it is built. */
+export type TestType = "words" | "passage" | "free";
 export type Skin = "alive" | "serious";
 export type Theme = "dark" | "light";
 export type InputMode = "romanized" | "preeti";
@@ -17,7 +20,10 @@ export type UiLanguage = "ne" | "mix" | "en";
 export const UI_LANGUAGES: readonly UiLanguage[] = ["ne", "mix", "en"];
 
 export interface Settings {
+  /** How you type. */
   mode: InputMode;
+  /** What you type. */
+  test: TestType;
   language: UiLanguage;
   variant: LayoutVariant;
   length: TestLength;
@@ -37,6 +43,7 @@ function keyboardDefault(): boolean {
 export function defaultSettings(): Settings {
   return {
     mode: "romanized",
+    test: "words",
     language: "mix", // the middle of the switch is the default
     variant: "wrapped",
     length: { kind: "time", seconds: 30 },
@@ -46,7 +53,8 @@ export function defaultSettings(): Settings {
   };
 }
 
-const VARIANTS: LayoutVariant[] = ["wrapped", "focus", "passage"];
+const VARIANTS: LayoutVariant[] = ["wrapped", "focus"];
+const TESTS: TestType[] = ["words", "passage", "free"];
 const TIMES = [15, 30, 60, 120];
 const COUNTS = [10, 25, 50];
 
@@ -78,7 +86,15 @@ export function loadSettings(): Settings {
     const data = parsed as Partial<Record<keyof Settings, unknown>>;
     return {
       mode: data.mode === "preeti" || data.mode === "romanized" ? data.mode : base.mode,
-      language: UI_LANGUAGES.includes(data.language as UiLanguage)
+      // Older saves had "passage" as a layout and free as a flag; both are
+      // test types now.
+      test: TESTS.includes(data.test as TestType)
+        ? (data.test as TestType)
+        : (data as { free?: unknown }).free === true
+          ? "free"
+          : data.variant === "passage"
+            ? "passage"
+            : base.test,      language: UI_LANGUAGES.includes(data.language as UiLanguage)
         ? (data.language as UiLanguage)
         : base.language,
       variant: VARIANTS.includes(data.variant as LayoutVariant)
