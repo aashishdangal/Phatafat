@@ -13,7 +13,7 @@
  * No DOM.
  */
 
-import { keyFor, preetiToUnicode, unicodeToPreeti } from "../engine/preeti";
+import { ALT_CODES, keyFor, preetiToUnicode, unicodeToPreeti } from "../engine/preeti";
 import { preetiLayout } from "./layouts/preeti";
 import type { InputMethod, InputUpdate, KeyEvent, KeyHint, KeyboardLayout } from "./types";
 
@@ -69,7 +69,7 @@ export class PreetiInput implements InputMethod {
       return this.update(true);
     }
 
-    if (event.key.length === 1 && PRINTABLE.test(event.key)) {
+    if (event.key.length === 1 && (PRINTABLE.test(event.key) || ALT_CODES.has(event.key))) {
       const expected = this.targetKeys[this.keys.length];
       this.keys += event.key;
       return { ...this.update(true), keyCorrect: event.key === expected };

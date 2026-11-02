@@ -14,7 +14,7 @@
 
 import { countGraphemes } from "../engine/scoring";
 import { codeForChar } from "../engine/hint";
-import { keyFor, unicodeToPreeti } from "../engine/preeti";
+import { charForAltCode, keyFor, unicodeToPreeti } from "../engine/preeti";
 import { PreetiInput } from "../input/preeti";
 import { RomanizedInput } from "../input/romanized";
 import type { InputMethod, KeyEvent, KeyHint } from "../input/types";
@@ -441,6 +441,47 @@ export function startApp(root: HTMLElement): void {
     }
     return true;
   }
+
+  /*
+   * Alt codes without a numpad. Windows only builds Alt codes (Alt+0203 = ङ्ग
+   * in Preeti) from the numpad, and most laptops have none. So the app
+   * collects the digits typed while Alt is held, on the top row or the
+   * numpad, and inserts the character itself when Alt is released.
+   */
+  let altDigits = "";
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key === "Alt") {
+        altDigits = "";
+        return;
+      }
+      if (event.altKey && !event.ctrlKey && !event.metaKey && /^[0-9]$/.test(event.key)) {
+        altDigits += event.key;
+        // Not a Preeti key while Alt is held, and no browser shortcut either.
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },
+    true,
+  );
+
+  document.addEventListener("keyup", (event) => {
+    if (event.key !== "Alt") return;
+    const digits = altDigits;
+    altDigits = "";
+    const char = charForAltCode(digits);
+    if (char === null) return;
+    // Releasing Alt would otherwise focus the browser menu.
+    event.preventDefault();
+    if (isControl(document.activeElement)) focusTypebox();
+    if (feed({ key: char, code: "AltLeft", shiftKey: false })) {
+      // A real numpad makes Windows insert the same character right after;
+      // the beforeinput guard below skips it, so it is never counted twice.
+      lastKeyAt = event.timeStamp;
+    }
+  });
 
   document.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {

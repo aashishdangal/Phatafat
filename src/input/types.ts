@@ -94,6 +94,8 @@ export interface KeyboardLayout {
 export interface KeyHint {
   code: string;
   shift: boolean;
+  /** For a character typed as Alt + numpad code (Preeti ङ = 0170): the code. */
+  altCode?: string;
 }
 
 export interface InputMethod {

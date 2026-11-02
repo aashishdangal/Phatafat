@@ -62,6 +62,14 @@ describe("Preeti mode through the real session", () => {
     expect(session.state.nextKeys).toEqual([{ code: "Space", shift: false }]);
   });
 
+  it("hints Alt + 0170 for ङ, and scores it typed as ª", () => {
+    const { session, type } = makeSession(["नङ"]);
+    type("g");
+    expect(session.state.nextKeys).toEqual([{ code: "AltLeft", shift: false, altCode: "0170" }]);
+    type("ª ");
+    expect(session.state.committed.map((w) => w.correct)).toEqual([true]);
+  });
+
   it("reopens a wrong word with the keys that were typed", () => {
     const { session, type } = makeSession(["नेपाल", "छ", "हो"]);
     type("g]kn ");

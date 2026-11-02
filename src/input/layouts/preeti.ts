@@ -57,5 +57,13 @@ function cap([code, plain, shifted]: readonly [string, string, string]): KeyCap 
 
 export const preetiLayout: KeyboardLayout = {
   id: "preeti",
-  rows: [...ROWS.map((row) => row.map(cap)), [{ code: "Space", sub: "space", label: "", width: 7 }]],
+  rows: [
+    ...ROWS.map((row) => row.map(cap)),
+    // Alt either side of Space, as on a real board: ङ is typed Alt+0170.
+    [
+      { code: "AltLeft", sub: "alt", label: "" },
+      { code: "Space", sub: "space", label: "", width: 7 },
+      { code: "AltRight", sub: "alt", label: "" },
+    ],
+  ],
 };

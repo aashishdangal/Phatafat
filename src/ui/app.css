@@ -15,7 +15,7 @@
 :root {
   --good: #2f9e5e;
   --good-wash: rgb(47 158 94 / 0.16);
-  --kb-unit: 2.6rem;
+  --kb-unit: 3rem;
 }
 
 :root[data-skin="serious"] {
@@ -612,14 +612,14 @@
 
 .kb-sub {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   line-height: 1;
   color: var(--fg-faint);
 }
 
 .kb-glyph {
   font-family: var(--font-deva);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   line-height: 1.25;
   color: var(--fg-muted);
   transition-property: color;
@@ -632,7 +632,7 @@
   top: 1px;
   right: 3px;
   font-family: var(--font-deva);
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   line-height: 1;
   color: var(--fg-faint);
 }
@@ -987,7 +987,7 @@
 
 @media (max-width: 900px) {
   :root {
-    --kb-unit: 2.1rem;
+    --kb-unit: 2.4rem;
   }
 }
 
@@ -1111,11 +1111,21 @@
 /* A cap glyph drawn as a stroke (Preeti's m tail): sized and coloured like
    the text glyphs beside it, so it reads as part of the same set. */
 .kb-glyph--drawn {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 1.1rem;
+  height: 1.1rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
   stroke-linecap: butt; /* the font's strokes end square, not rounded */
   stroke-linejoin: round;
+}
+
+/* The numpad code an Alt-code hint asks for (Preeti ङ = Alt+0170). Empty
+   until needed; the slot is always there, so nothing shifts when it fills. */
+.kb-alt-code {
+  min-height: 1em;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1;
+  color: var(--accent-text);
 }

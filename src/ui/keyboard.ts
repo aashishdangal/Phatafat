@@ -10,7 +10,7 @@
  */
 
 import type { KeyboardLayout, KeyHint } from "../input/types";
-import { el, toggleClass } from "./dom";
+import { el, setText, toggleClass } from "./dom";
 
 const FLASH_MS = 150;
 
@@ -31,6 +31,9 @@ export class KeyboardView {
   readonly el: HTMLElement;
   private readonly caps = new Map<string, HTMLElement>();
   private readonly shiftCaps: HTMLElement[] = [];
+  /** Alt caps, each with a slot for the numpad code an Alt-code hint asks for. */
+  private readonly altCaps: { cap: HTMLElement; code: HTMLElement }[] = [];
+  private altCodeShown: string | undefined = undefined;
   private highlighted: HTMLElement[] = [];
   private shiftHighlighted = false;
   private readonly flashTimers = new Map<HTMLElement, number>();
@@ -41,8 +44,9 @@ export class KeyboardView {
         "div",
         { class: "kb-row", "data-row": String(rowIndex) },
         row.map((cap) => {
+          const isAlt = cap.code === "AltLeft" || cap.code === "AltRight";
           const node = el("div", {
-            class: `kb-key${cap.code === "Space" ? " kb-key--space" : ""}`,
+            class: `kb-key${cap.code === "Space" ? " kb-key--space" : ""}${isAlt ? " kb-key--mod" : ""}`,
             "data-code": cap.code,
             style: cap.width !== undefined ? `--kb-span:${cap.width}` : undefined,
             "aria-hidden": "true",
@@ -52,6 +56,12 @@ export class KeyboardView {
           else if (cap.label !== "") node.append(el("span", { class: "kb-glyph", text: cap.label }));
           if (cap.shiftLabel !== undefined) {
             node.append(el("span", { class: "kb-shift-glyph", text: cap.shiftLabel }));
+          }
+          if (isAlt) {
+            // Empty until a hint needs an Alt code; then it shows the number.
+            const code = el("span", { class: "kb-alt-code" });
+            node.append(code);
+            this.altCaps.push({ cap: node, code });
           }
           this.caps.set(cap.code, node);
           return node;
@@ -85,10 +95,12 @@ export class KeyboardView {
   setHints(hints: readonly KeyHint[]): void {
     const next: HTMLElement[] = [];
     let wantShift = false;
+    let altCode: string | undefined;
     for (const hint of hints) {
       const cap = this.caps.get(hint.code);
       if (cap !== undefined) next.push(cap);
       if (hint.shift) wantShift = true;
+      if (hint.altCode !== undefined) altCode = hint.altCode;
     }
 
     if (next.length === this.highlighted.length && next.every((n, i) => this.highlighted[i] === n)) {
@@ -102,6 +114,16 @@ export class KeyboardView {
     if (wantShift !== this.shiftHighlighted) {
       for (const cap of this.shiftCaps) toggleClass(cap, "is-next", wantShift);
       this.shiftHighlighted = wantShift;
+    }
+
+    // An Alt-code letter (Preeti ङ): both Alt keys light up and show the
+    // number to type on the numpad while Alt is held.
+    if (altCode !== this.altCodeShown) {
+      for (const { cap, code } of this.altCaps) {
+        toggleClass(cap, "is-next", altCode !== undefined);
+        setText(code, altCode ?? "");
+      }
+      this.altCodeShown = altCode;
     }
   }
 
