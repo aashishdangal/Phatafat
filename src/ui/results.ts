@@ -50,7 +50,8 @@ export function renderResults(options: ResultsOptions): HTMLElement {
     examTarget === undefined
       ? null
       : (() => {
-          const passed = Math.round(results.netWpm) >= examTarget;
+          // Judged on the raw value: 24.6 does not pass a target of 25.
+          const passed = results.netWpm >= examTarget;
           return el(
             "div",
             {
@@ -63,7 +64,8 @@ export function renderResults(options: ResultsOptions): HTMLElement {
                 class: "rc-verdict-line tnum",
                 text: ne.verdictLine
                   .replace("{target}", neNum(examTarget))
-                  .replace("{net}", neInt(results.netWpm)),
+                  // One decimal, so a near miss does not read as the target itself.
+                  .replace("{net}", neNum(results.netWpm.toFixed(1))),
               }),
               el("div", { class: "rc-verdict-note", text: ne.examNote }),
             ],
