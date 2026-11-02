@@ -22,7 +22,7 @@ import wordsJson from "../data/words.json";
 import type { WpmSample } from "./chart";
 import { ControlBar } from "./controls";
 import { el, setText } from "./dom";
-import { clamp01, neDuration, neNum } from "./format";
+import { clamp01, neDuration, neInt, neNum, nePercent } from "./format";
 import { KeyboardView } from "./keyboard";
 import { ProgressBar, heatFromWpm } from "./progress";
 import { renderResults } from "./results";
@@ -61,6 +61,14 @@ export function startApp(root: HTMLElement): void {
     "aria-describedby": "typing-hint",
   });
   const hint = el("p", { class: "hint", id: "typing-hint", text: ne.startHint });
+  // Touch screens have no Tab or Esc, so they get a real button (CSS shows
+  // it only on coarse pointers).
+  const restartTouch = el("button", { class: "btn btn--ghost restart-touch", type: "button" }, [
+    ne.restart,
+  ]);
+  restartTouch.addEventListener("click", () => restart());
+  // Announces the result to screen readers when a test ends.
+  const announcer = el("p", { class: "sr-only", "aria-live": "polite" });
   const stage = el("div", { class: "stage" }, [
     el("div", { class: "stage-type" }, [typebox, wordsHost]),
     progress.el,
@@ -91,21 +99,40 @@ export function startApp(root: HTMLElement): void {
       persist();
       applySkin();
     },
+    onTheme: (theme) => {
+      settings.theme = theme;
+      persist();
+      applySkin();
+    },
   });
 
-  const main = el("main", { class: "main" }, [stage, keyboardHost, hint, resultsHost]);
+  const main = el("main", { class: "main" }, [
+    stage,
+    keyboardHost,
+    hint,
+    restartTouch,
+    resultsHost,
+    announcer,
+  ]);
   root.replaceChildren(controls.el, main);
 
   function persist(): void {
     saveSettings(settings satisfies Settings);
   }
 
+  /** Skin and theme together: both are a colour swap on <html>. */
   function applySkin(): void {
-    // Suppress transitions across the skin swap so every colour does not
+    // Suppress transitions across the swap so every colour does not
     // animate at once (better-ui).
-    document.documentElement.classList.add("no-transitions");
-    document.documentElement.dataset.skin = settings.skin;
+    const html = document.documentElement;
+    html.classList.add("no-transitions");
+    html.dataset.skin = settings.skin;
+    html.dataset.theme = settings.theme;
     controls.setSkin(settings.skin);
+    controls.setTheme(settings.theme);
+    // Mobile browser chrome follows the page background.
+    const bg = getComputedStyle(html).getPropertyValue("--bg").trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", bg);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => document.documentElement.classList.remove("no-transitions"));
     });
@@ -183,6 +210,7 @@ export function startApp(root: HTMLElement): void {
     progress.reset();
     keyboard.clearFlashes();
     resultsHost.replaceChildren();
+    setText(announcer, "");
     root.classList.remove("is-finished");
   }
 
@@ -278,8 +306,14 @@ export function startApp(root: HTMLElement): void {
     if (state.status === "running") startLoop();
   }
 
+  /** Touch screens have no Tab key; the restart button below speaks for itself. */
+  const coarsePointer = window.matchMedia("(pointer: coarse)");
+  function restartHint(): string {
+    return coarsePointer.matches ? "" : ne.restartHint;
+  }
+
   function idleHint(): string {
-    return document.activeElement === typebox ? ne.restartHint : ne.tapToType;
+    return document.activeElement === typebox ? restartHint() : ne.tapToType;
   }
 
   function showResults(state: SessionState): void {
@@ -304,7 +338,13 @@ export function startApp(root: HTMLElement): void {
         onRestart: restart,
       }),
     );
-    setText(hint, ne.restartHint);
+    setText(hint, restartHint());
+    setText(
+      announcer,
+      `${ne.results}: ${ne.grossWpm} ${neInt(results.grossWpm)} ${ne.wpmUnit}, ` +
+        `${ne.netWpm} ${neInt(results.netWpm)} ${ne.wpmUnit}, ` +
+        `${ne.accuracy} ${nePercent(results.wordAccuracy)}`,
+    );
   }
 
   /* ---------------- the clock ---------------- */
@@ -385,10 +425,11 @@ export function startApp(root: HTMLElement): void {
       return;
     }
 
-    // Tab restarts from the typing surface and from the results card, but
-    // still moves focus when the user is on a header control, so the whole
-    // interface stays reachable by keyboard alone.
-    if (event.key === "Tab" && !isControl(event.target)) {
+    // Tab restarts from the typing surface and from the results card.
+    // Shift+Tab is left to the browser, so focus can leave the typing box
+    // for the header controls (WCAG 2.1.1, no keyboard trap). On a header
+    // control, Tab moves focus as usual.
+    if (event.key === "Tab" && !event.shiftKey && !isControl(event.target)) {
       event.preventDefault();
       restart();
       return;
@@ -434,7 +475,7 @@ export function startApp(root: HTMLElement): void {
   // unfocused it says "tap here to type" and the surface shows a dashed
   // edge (CSS :focus-within); focused, the caret is the indicator.
   typebox.addEventListener("focus", () => {
-    if (session.state.status !== "running") setText(hint, ne.restartHint);
+    if (session.state.status !== "running") setText(hint, restartHint());
   });
   typebox.addEventListener("blur", () => {
     if (session.state.status !== "running") setText(hint, ne.tapToType);

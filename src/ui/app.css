@@ -77,6 +77,7 @@
 }
 
 .brand-name {
+  margin: 0;
   font-family: var(--font-deva);
   font-size: var(--text-lg);
   font-weight: 700;
@@ -121,7 +122,7 @@
 
 .group-label {
   font-size: var(--text-xs);
-  color: var(--fg-ghost);
+  color: var(--fg-faint);
   padding-inline: var(--sp-2) var(--sp-1);
 }
 
@@ -138,7 +139,7 @@
 }
 
 .pill[aria-pressed="true"] {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--crimson-wash);
   border-color: var(--crimson-dim);
 }
@@ -155,7 +156,7 @@
   }
 
   .pill[aria-pressed="true"]:not(:disabled):hover {
-    color: var(--accent);
+    color: var(--accent-text);
     background: var(--crimson-wash);
   }
 }
@@ -242,7 +243,7 @@
 /* Wrong words keep showing the target, in crimson, with a wavy underline so
    the state is not carried by colour alone. */
 .w.is-wrong {
-  color: var(--error);
+  color: var(--error-text);
   text-decoration-line: underline;
   text-decoration-style: wavy;
   text-decoration-thickness: 1px;
@@ -358,6 +359,8 @@
 }
 
 .words--passage {
+  /* Small type here, so upcoming words need full 4.5:1 text contrast. */
+  --word-pending: var(--fg-faint);
   font-size: clamp(1.1rem, 3.6vw, 1.65rem);
   padding: var(--sp-6);
   border: 1px solid var(--line);
@@ -631,7 +634,7 @@
   font-family: var(--font-deva);
   font-size: 0.6rem;
   line-height: 1;
-  color: var(--fg-ghost);
+  color: var(--fg-faint);
 }
 
 /* Next key: border and glyph colour, so the hint is not motion-only. */
@@ -642,7 +645,7 @@
 }
 
 .kb-key.is-next .kb-glyph {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .kb-key.is-next .kb-sub {
@@ -708,7 +711,7 @@
   font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .rc-title {
@@ -873,7 +876,7 @@
 .rc-wrong-typed {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--error);
+  color: var(--error-text);
   text-decoration-line: line-through;
 }
 
@@ -911,7 +914,7 @@
 .btn--primary {
   background: var(--crimson-wash);
   border-color: var(--crimson-dim);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .btn--ghost {
@@ -1043,5 +1046,64 @@
 
   .rc-big-value {
     font-size: var(--text-2xl);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Accessibility helpers
+ * ------------------------------------------------------------------ */
+
+/* Read by screen readers, never drawn. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Restart for touch screens, which have no Tab or Esc key. Hidden where a
+   real keyboard is the norm, so the desktop stays as quiet as before. */
+.restart-touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .restart-touch {
+    display: inline-flex;
+    align-self: center;
+  }
+
+  /* 44px touch targets on coarse pointers. The pills keep their look; an
+     invisible ::before grows the tap area to 44px tall, and the rows open up
+     so neighbouring tap areas never overlap. */
+  .controls {
+    row-gap: var(--sp-4);
+  }
+
+  .pill {
+    position: relative;
+  }
+
+  .pill::before {
+    content: "";
+    position: absolute;
+    inset: calc((44px - 100%) / -2) 0;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+}
+
+/* Press feedback (better-ui): 0.96, never on a disabled button, and only
+   when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+  .restart-touch:not(:disabled):active {
+    scale: 0.96;
   }
 }

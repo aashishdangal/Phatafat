@@ -1,5 +1,5 @@
 /**
- * The header: mode, length, layout variant, keyboard and skin.
+ * The header: mode, length, layout variant, keyboard, skin and theme.
  *
  * Every control is a pill button with `aria-pressed`, so the selected state is
  * carried by markup as well as by colour. The whole bar dims to
@@ -11,13 +11,14 @@ import type { TestLength } from "../session/session";
 import { el, toggleClass } from "./dom";
 import { neNum } from "./format";
 import { ne } from "./strings";
-import { LENGTH_OPTIONS, type LayoutVariant, type Skin } from "./settings";
+import { LENGTH_OPTIONS, type LayoutVariant, type Skin, type Theme } from "./settings";
 
 export interface ControlHandlers {
   onLength: (length: TestLength) => void;
   onVariant: (variant: LayoutVariant) => void;
   onKeyboard: (show: boolean) => void;
   onSkin: (skin: Skin) => void;
+  onTheme: (theme: Theme) => void;
 }
 
 function pill(label: string, attrs: Record<string, string> = {}): HTMLButtonElement {
@@ -40,6 +41,7 @@ export class ControlBar {
   private readonly variantPills = new Map<LayoutVariant, HTMLButtonElement>();
   private readonly keyboardPill: HTMLButtonElement;
   private readonly skinPill: HTMLButtonElement;
+  private readonly themePill: HTMLButtonElement;
   private readonly bar: HTMLElement;
   private dimmed = false;
 
@@ -92,17 +94,26 @@ export class ControlBar {
       handlers.onKeyboard(this.keyboardPill.getAttribute("aria-pressed") !== "true");
     });
 
-    this.skinPill = pill(ne.skinAlive, { "aria-label": ne.skin });
+    this.skinPill = pill(ne.skinAlive);
     this.skinPill.addEventListener("click", () => {
       handlers.onSkin(this.skinPill.dataset.skin === "serious" ? "alive" : "serious");
     });
 
-    const tools = el("div", { class: "group group--tools" }, [this.keyboardPill, this.skinPill]);
+    this.themePill = pill(ne.themeDark);
+    this.themePill.addEventListener("click", () => {
+      handlers.onTheme(this.themePill.dataset.theme === "light" ? "dark" : "light");
+    });
+
+    const tools = el("div", { class: "group group--tools" }, [
+      this.keyboardPill,
+      this.skinPill,
+      this.themePill,
+    ]);
 
     this.bar = el("div", { class: "controls" }, [modeGroup, lengthGroup, variantGroup, tools]);
     this.el = el("header", { class: "top" }, [
       el("div", { class: "brand" }, [
-        el("span", { class: "brand-name", text: ne.appName }),
+        el("h1", { class: "brand-name", text: ne.appName }),
         el("span", { class: "brand-tag", text: ne.tagline }),
       ]),
       this.bar,
@@ -128,8 +139,21 @@ export class ControlBar {
 
   setSkin(skin: Skin): void {
     this.skinPill.dataset.skin = skin;
-    this.skinPill.textContent = skin === "serious" ? ne.skinSerious : ne.skinAlive;
-    this.skinPill.setAttribute("aria-pressed", skin === "serious" ? "true" : "false");
+    // The button shows the current value. Its accessible name contains that
+    // visible word (WCAG 2.5.3), and it is not aria-pressed: "pressed" says
+    // nothing about which of two skins is on.
+    const label = skin === "serious" ? ne.skinSerious : ne.skinAlive;
+    this.skinPill.textContent = label;
+    this.skinPill.removeAttribute("aria-pressed");
+    this.skinPill.setAttribute("aria-label", `${ne.skin}: ${label}`);
+  }
+
+  setTheme(theme: Theme): void {
+    this.themePill.dataset.theme = theme;
+    const label = theme === "light" ? ne.themeLight : ne.themeDark;
+    this.themePill.textContent = label;
+    this.themePill.removeAttribute("aria-pressed");
+    this.themePill.setAttribute("aria-label", `${ne.theme}: ${label}`);
   }
 
   /** Dim and disable while typing; restore when the test stops. */

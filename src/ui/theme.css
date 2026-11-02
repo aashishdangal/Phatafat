@@ -11,8 +11,8 @@
  *   alive   (default) — reactive colour, glow, motion
  *   serious           — muted, still, exam-like; same layout, no spectacle
  *
- * Dark is the default theme. Light exists so the tokens stay honest, and is
- * opt-in via data-theme="light".
+ * Dark is the default theme. Light is opt-in from the header toggle, which
+ * sets data-theme="light"; it combines with either skin.
  */
 
 :root {
@@ -29,8 +29,8 @@
   /* Foreground */
   --fg: #efe9ec;
   --fg-muted: #a2969d;
-  --fg-faint: #6b6066;
-  --fg-ghost: #453d42;
+  --fg-faint: #8a7f85; /* 4.6:1 on --surface: small text passes AA */
+  --fg-ghost: #453d42; /* decoration only, never text */
 
   /* Nepali flag palette.
    *
@@ -41,6 +41,9 @@
   --crimson-hi: #e81838;
   --crimson-dim: #7a0a1c;
   --crimson-wash: rgb(200 16 46 / 0.13);
+  /* Crimson for small text. --crimson is 3.3:1 on this ground: fine for the
+     caret, chart and big type (3:1), too dim for 12-14px labels (4.5:1). */
+  --crimson-text: #fa4a60;
   --blue: #4477d8;
   --blue-dim: #2b4a86;
   --blue-wash: rgb(68 119 216 / 0.12);
@@ -49,8 +52,12 @@
   --accent: var(--crimson);
   --error: var(--crimson);
   --error-wash: var(--crimson-wash);
+  --accent-text: var(--crimson-text);
+  --error-text: var(--crimson-text);
   --info: var(--blue);
-  --word-pending: var(--fg-faint);
+  /* Upcoming words are large (24px+), so the dim 3:1 tone is allowed there;
+     passage mode, where they are small, overrides this with --fg-faint. */
+  --word-pending: #6b6066;
   --word-active: var(--fg);
   --word-correct: var(--fg); /* a committed correct word reads as plain text */
   --word-wrong: var(--crimson);
@@ -120,13 +127,15 @@
 
   --fg: #171315;
   --fg-muted: #5e545a;
-  --fg-faint: #8d8288;
+  --fg-faint: #6e6369; /* 5.0:1 on --surface */
   --fg-ghost: #bfb5bb;
+  --word-pending: #8d8288;
 
   --crimson: #ad0c25;
   --crimson-hi: #c8102e;
   --crimson-dim: #eeb5bf;
   --crimson-wash: rgb(173 12 37 / 0.1);
+  --crimson-text: var(--crimson); /* already 6.4:1 or better on light grounds */
   --blue: #003893;
   --blue-dim: #9fb4dd;
   --blue-wash: rgb(0 56 147 / 0.09);
@@ -134,6 +143,15 @@
   --shadow-raised: 0 1px 2px rgb(23 19 21 / 0.08), 0 2px 8px rgb(23 19 21 / 0.06);
   --shadow-float: 0 2px 4px rgb(23 19 21 / 0.1), 0 8px 24px rgb(23 19 21 / 0.1);
   --glow-accent: 0 0 20px rgb(173 12 37 / 0.2);
+}
+
+/* Serious + light: the serious skin pins a few dark-ground values; give
+   them their light-ground equivalents. */
+:root[data-theme="light"][data-skin="serious"] {
+  --word-pending: #8d8288;
+  --accent: var(--crimson);
+  --error: var(--crimson);
+  --shadow-float: 0 1px 3px rgb(23 19 21 / 0.14);
 }
 
 /* Reset */

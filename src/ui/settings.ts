@@ -10,12 +10,14 @@ import type { TestLength } from "../session/session";
 
 export type LayoutVariant = "wrapped" | "focus" | "passage";
 export type Skin = "alive" | "serious";
+export type Theme = "dark" | "light";
 
 export interface Settings {
   variant: LayoutVariant;
   length: TestLength;
   keyboard: boolean;
   skin: Skin;
+  theme: Theme;
 }
 
 const KEY = "phatafat.settings.v1";
@@ -32,6 +34,7 @@ export function defaultSettings(): Settings {
     length: { kind: "time", seconds: 30 },
     keyboard: keyboardDefault(),
     skin: "alive",
+    theme: "dark", // dark by default (CLAUDE.md); light is opt-in
   };
 }
 
@@ -72,6 +75,7 @@ export function loadSettings(): Settings {
       length: parseLength(data.length) ?? base.length,
       keyboard: typeof data.keyboard === "boolean" ? data.keyboard : base.keyboard,
       skin: data.skin === "serious" || data.skin === "alive" ? data.skin : base.skin,
+      theme: data.theme === "light" || data.theme === "dark" ? data.theme : base.theme,
     };
   } catch {
     return base;

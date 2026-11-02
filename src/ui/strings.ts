@@ -29,7 +29,7 @@ export const ne = {
 
   // Live
   startHint: "टाइप गर्न सुरु गर्नुहोस्",
-  restartHint: "पुनः सुरु गर्न Tab थिच्नुहोस्",
+  restartHint: "पुनः सुरु गर्न Tab थिच्नुहोस् · सेटिङमा जान Shift+Tab",
 
   // Results — exam-style report card
   results: "नतिजा",
@@ -84,6 +84,9 @@ export const ne = {
   skin: "रूप",
   skinAlive: "जीवन्त",
   skinSerious: "गम्भीर",
+  theme: "रङ",
+  themeDark: "अँध्यारो",
+  themeLight: "उज्यालो",
   showKeyboard: "कीबोर्ड देखाउनु",
   on: "खुला",
   off: "बन्द",
