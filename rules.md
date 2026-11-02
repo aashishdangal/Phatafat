@@ -183,6 +183,12 @@ No target exists, so we need a reverse lookup:
 2. At startup, index every dictionary word under each skeleton its spellings can produce (most words have one; words with क्ष, ज्ञ, or व have a few).
 3. On commit: compute the typed word's skeleton, fetch that bucket, and run the A1 matcher against each candidate. Any match means the word is valid, and the first match is displayed.
 
+### A10. Typed Devanagari (Preeti mode)
+
+When the typed word already contains Devanagari (Preeti mode commits the text its keys produce), it is compared **exactly** with the target, after normalizing both sides the same way: NFC, nukta removed, ZWJ/ZWNJ removed, punctuation stripped. No spelling variants apply; the keystrokes already decided every letter. `गर्यो` matches `गर्‍यो`.
+
+Preeti keystrokes themselves live in `src/engine/preeti.ts`: one standard keystroke order per word (ि before its cluster, reph `{` after its syllable), checked key by key. Test cases are in `data/preeti-test-words.json`.
+
 ---
 
 ## Part B — Preview transliterator (Latin → Devanagari)

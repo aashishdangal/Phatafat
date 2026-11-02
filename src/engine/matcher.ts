@@ -374,7 +374,22 @@ export function compileTarget(target: string): RegExp {
  * A1: is `typed` an accepted romanized spelling of the Devanagari `target`?
  * Overrides (A7) are checked before the pattern.
  */
+/** Any Devanagari letter, sign or digit. */
+const DEVANAGARI = /[ऀ-ॿ]/;
+const ZERO_WIDTH = /[‌‍]/g;
+
+/**
+ * A10: typed text that is already Devanagari (Preeti mode) is compared
+ * exactly, after the same target normalization on both sides (NFC, nukta,
+ * ZWJ/ZWNJ, punctuation). No spelling variants: the keys decided the letters.
+ */
+function matchDevanagari(typed: string, target: string): boolean {
+  const a = normalizeTarget(typed.replace(ZERO_WIDTH, ""));
+  return a.length > 0 && a === normalizeTarget(target.replace(ZERO_WIDTH, ""));
+}
+
 export function matchWord(typed: string, target: string): boolean {
+  if (DEVANAGARI.test(typed)) return matchDevanagari(typed, target);
   const normalizedTyped = normalizeTyped(typed);
   if (normalizedTyped.length === 0) return false;
 
