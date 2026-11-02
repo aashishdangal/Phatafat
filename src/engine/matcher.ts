@@ -155,6 +155,24 @@ export const MATRAS: ReadonlyMap<string, readonly string[]> = new Map([
 const HALANT = "्";
 
 /**
+ * A4 aspirate geminates: each unaspirated stop and its own aspirate. In
+ * बुद्ध the typist writes `buddha`, which A2 collapses to `budha`, so the
+ * first consonant must be optional or the word is untypeable.
+ */
+const ASPIRATE_OF: ReadonlyMap<string, string> = new Map([
+  ["क", "ख"],
+  ["ग", "घ"],
+  ["च", "छ"],
+  ["ज", "झ"],
+  ["ट", "ठ"],
+  ["ड", "ढ"],
+  ["त", "थ"],
+  ["द", "ध"],
+  ["प", "फ"],
+  ["ब", "भ"],
+]);
+
+/**
  * A5: the vowels that may be preceded by an optional glide `y`.
  *
  * Nepali typists insert a y before ए/ऐ whenever it follows a vowel or a bare
@@ -271,8 +289,16 @@ export function compileTargetSource(normalizedTarget: string): string {
 
     const consonant = CONSONANTS.get(ch);
     if (consonant !== undefined) {
-      out += group(consonant);
+      // A4 aspirate geminates (द्ध, त्थ, च्छ): the first consonant is optional,
+      // the aspirate after it stays required, so d/dh folding is untouched.
+      const aspirateGeminate =
+        chars[i + 1] === HALANT && chars[i + 2] !== undefined && ASPIRATE_OF.get(ch) === chars[i + 2];
+      out += group(consonant, aspirateGeminate);
       i += 1;
+      if (aspirateGeminate) {
+        i += 1; // the halant; the aspirate is compiled on the next pass
+        continue;
+      }
       // A4 geminates: consonant + halant + the same consonant counts once,
       // matching the consonant-collapsed input (पक्का → `pakka` and `paka`).
       if (chars[i] === HALANT && chars[i + 1] === ch && isConsonant(chars[i + 1])) {

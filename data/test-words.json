@@ -61,5 +61,11 @@
   {"target": "बनाएको", "accept": ["banaeko", "banayeko"], "reject": ["banako", "banaeka"]},
   {"target": "खाएर", "accept": ["khaera", "khayera", "khaer"], "reject": ["khaara", "khaeri"]},
   {"target": "थिएन", "accept": ["thiena", "thiyena", "thien"], "reject": ["thina", "thienax"]},
-  {"target": "गरिएको", "accept": ["garieko", "gariyeko"], "reject": ["gariko", "garieka"]}
+  {"target": "गरिएको", "accept": ["garieko", "gariyeko"], "reject": ["gariko", "garieka"]},
+  {"target":"बुद्ध","accept":["buddha","budha","buddh","Buddha"],"reject":["buda","budda","bhuddha"]},
+  {"target":"युद्ध","accept":["yuddha","yudha","yuddh"],"reject":["yuda","yudda"]},
+  {"target":"प्रसिद्ध","accept":["prasiddha","prasidha","prasiddh"],"reject":["prasida","prashid"]},
+  {"target":"समृद्धि","accept":["samriddhi","samridhi","samrudhi"],"reject":["samridi","samriddha"]},
+  {"target":"पत्थर","accept":["patthar","pathar","patthr"],"reject":["patar","pattar"]},
+  {"target":"इच्छा","accept":["ichchha","ichha","iccha","icha"],"reject":["ika","ija"]}
 ]

@@ -107,6 +107,8 @@ Examples: `गर्नु → g a? r n (u|oo)` · `नमस्ते → n a? 
 
 **Geminates:** a consonant + halant + the *same* consonant (`क्क`, `द्द`, `त्त`) counts once, matching the collapsed input. `पक्का` accepts `pakka` and `paka`.
 
+**Aspirate geminates:** a stop + halant + its *own* aspirate (`द्ध`, `त्थ`, `च्छ`, `क्ख`, `ब्भ`, …) makes the first consonant optional. Without this the word is untypeable: `buddha` collapses to `budha` (A2), but the target would demand `d` + `dh`. The aspirate itself stays required, so aspirate folding is not loosened: `बुद्ध` accepts `buddha` and `budha`, rejects `buda`.
+
 ### A5. Vowels
 
 The same groups apply to independent vowels and to matras.
