@@ -57,7 +57,7 @@ Each consonant becomes a group of accepted spellings.
 | घ | gh |
 | ङ | ng, n |
 | च | ch, c |
-| छ | chh, ch, c |
+| छ | chh, ch, c, x |
 | ज | j, z |
 | झ | jh |
 | ञ | ny, n |
@@ -82,8 +82,12 @@ Each consonant becomes a group of accepted spellings.
 
 | Devanagari | Accepted Latin |
 |---|---|
-| क्ष | ksh, kch, x, chh, ch |
+| क्ष | ksh, kch, x, chh, ch, each with an optional `k` before and `y` after |
 | ज्ञ | gy, gny, gn, jn |
+
+`x` belongs to both क्ष and छ: Nepali typists write छ as `x` (`xa`, `garxa`, `xaina`) as often as क्ष (`xetri`). Matching is always against a known target, so the shared key is never ambiguous for scoring.
+
+क्ष is sounded *k-chhya*, so typists often add a `k` before it and a `y` after it: `rakxya` and `rakxa` for रक्षा, `kakshya` for कक्षा, `xyamata` for क्षमता. Every क्ष spelling accepts both extras. A real य after क्ष still has to be typed: `lakxya` matches लक्ष्य through `x` + `y`.
 
 **Order within a group carries no meaning for matching** — the compiled pattern
 is an alternation, so `sh, s` and `s, sh` behave identically. It does matter for
@@ -190,6 +194,8 @@ Used for the live preview above the buffer, and for displaying words in free mod
 `k क · kh ख · g ग · gh घ · ng ङ · ch च · chh छ · j ज · jh झ · ny ञ · T ट · Th ठ · D ड · Dh ढ · N ण · t त · th थ · d द · dh ध · n न · p प · ph/f फ · b ब · bh भ · m म · y य · r र · l ल · v/w व · sh श · Sh ष · s स · h ह · x/ksh क्ष · gy ज्ञ`
 
 Capital `T D N Sh` are the only case-sensitive keys (retroflex). They matter only for the preview and free mode, never for test scoring.
+
+**`x` follows the target.** With a target word, the nth `x` in the buffer previews as the nth क्ष or छ in the target, in order (`garxa` for गर्छ → गर्छ, `xetri` for क्षेत्री → क्षेत्रि). With no target, or more `x` than the target has, `x` previews as क्ष. `kx` always previews as one क्ष (`rakxa` → रक्ष, not रक्क्ष), and a `y` straight after a क्ष is left out of the preview unless the target has क्ष्य there (`rakxya` for रक्षा → रक्ष, `lakxya` for लक्ष्य → लक्ष्य).
 
 ### B2. Vowels (independent / matra)
 

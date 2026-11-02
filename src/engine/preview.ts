@@ -70,6 +70,7 @@ const CONSONANT_KEYS: ReadonlyArray<readonly [string, string]> = [
   ["s", "स"],
   ["h", "ह"],
   ["x", `क${HALANT}ष`],
+  ["kx", `क${HALANT}ष`], // क्ष sounded out (A3): rakxa → रक्ष, not रक्क्ष
   ["ksh", `क${HALANT}ष`],
   ["gy", `ज${HALANT}ञ`],
 ];
@@ -189,6 +190,43 @@ export function tokenizeLatin(latin: string): PreviewToken[] {
   return tokens;
 }
 
+export interface PreviewOptions {
+  /** The word being typed, when there is one. Only used to read `x`. */
+  target?: string | null;
+}
+
+const KSHA = `क${HALANT}ष`;
+
+/** One क्ष or छ of the target, and whether a य follows it (क्ष्य). */
+export interface XReading {
+  dev: string;
+  yFollows: boolean;
+}
+
+/** The क्ष and छ of a target word, in order: what each typed `x` stands for. */
+export function xReadings(target: string | null): XReading[] {
+  if (target === null) return [];
+  const out: XReading[] = [];
+  const word = target.normalize("NFC");
+  for (let i = 0; i < word.length; i += 1) {
+    if (word.startsWith(KSHA, i)) {
+      i += KSHA.length - 1;
+      out.push({ dev: KSHA, yFollows: word.startsWith(HALANT + "य", i + 1) });
+    } else if (word[i] === "छ") {
+      out.push({ dev: "छ", yFollows: false });
+    }
+  }
+  return out;
+}
+
+/** Tokens that stand for one of the target's क्ष/छ, so they advance the x count. */
+function isXLike(token: PreviewToken): boolean {
+  return (
+    token.kind === "consonant" &&
+    (token.latin === "x" || token.latin === "kx" || token.dev === KSHA || token.dev === "छ")
+  );
+}
+
 /**
  * B1–B5: render a Latin buffer as Devanagari.
  *
@@ -197,18 +235,45 @@ export function tokenizeLatin(latin: string): PreviewToken[] {
  * halant between them, and a word-final (or still-unresolved, mid-typing)
  * consonant stays bare with no halant. Type `\` for a real final halant.
  */
-export function toDevanagari(latin: string): string {
+export function toDevanagari(latin: string, options: PreviewOptions = {}): string {
+  const xs = xReadings(options.target ?? null);
+  let xSeen = 0;
+  const tokens = tokenizeLatin(latin);
   let out = "";
   // True when the last thing emitted was a consonant with no vowel yet, so the
   // next consonant has to be joined with a halant (B3).
   let pendingConsonant = false;
 
-  for (const token of tokenizeLatin(latin)) {
+  for (let t = 0; t < tokens.length; t += 1) {
+    const token = tokens[t];
+    if (token === undefined) break;
     switch (token.kind) {
-      case "consonant":
-        out += pendingConsonant ? HALANT + token.dev : token.dev;
+      case "consonant": {
+        // x is both क्ष and छ (A3); with a target, the nth x reads as the
+        // nth of those in the word, so pakauxa previews as पकाउछ.
+        let dev = token.dev;
+        if (isXLike(token)) {
+          const reading = xs[xSeen++];
+          if (reading !== undefined && (token.latin === "x" || token.latin === "kx")) {
+            dev = token.latin === "kx" ? KSHA : reading.dev;
+          }
+          // The y of a sounded-out क्ष (rakxya) is not a य unless the target
+          // has one there (लक्ष्य).
+          const next = tokens[t + 1];
+          if (
+            dev === KSHA &&
+            reading?.dev === KSHA &&
+            !reading.yFollows &&
+            next?.kind === "consonant" &&
+            next.latin === "y"
+          ) {
+            t += 1;
+          }
+        }
+        out += pendingConsonant ? HALANT + dev : dev;
         pendingConsonant = true;
         break;
+      }
       case "vowel":
         // Inherent `a` after a consonant adds nothing (B3: `ka → क`).
         out += pendingConsonant ? (token.matra ?? "") : token.dev;

@@ -77,7 +77,7 @@ export const CONSONANTS: ReadonlyMap<string, readonly string[]> = new Map([
   ["घ", ["gh"]],
   ["ङ", ["ng", "n"]],
   ["च", ["ch", "c"]],
-  ["छ", ["chh", "ch", "c"]],
+  ["छ", ["chh", "ch", "c", "x"]],
   ["ज", ["j", "z"]],
   ["झ", ["jh"]],
   ["ञ", ["ny", "n"]],
@@ -106,9 +106,23 @@ export const CONSONANTS: ReadonlyMap<string, readonly string[]> = new Map([
   ["ह", ["h"]],
 ]);
 
+/** A3: the base spellings of क्ष, in hint order (the hint follows the first). */
+const KSHA_BASE = ["ksh", "kch", "x", "chh", "ch"];
+
+/**
+ * A3: क्ष is sounded *k-chhya*, so typists add a k before it and a y after it
+ * (`rakxya` for रक्षा, `xyamata` for क्षमता). Every base spelling takes an
+ * optional k prefix and y suffix. The base forms come first so the hint is
+ * unchanged.
+ */
+const KSHA_SPELLINGS = [
+  ...KSHA_BASE,
+  ...KSHA_BASE.flatMap((base) => [`k${base}`, `${base}y`, `k${base}y`]),
+];
+
 /** A3: special clusters, matched *before* their component consonants. */
 export const CLUSTERS: ReadonlyMap<string, readonly string[]> = new Map([
-  ["क्ष", ["ksh", "kch", "x", "chh", "ch"]],
+  ["क्ष", KSHA_SPELLINGS],
   ["ज्ञ", ["gy", "gny", "gn", "jn"]],
 ]);
 

@@ -82,7 +82,7 @@ export class RomanizedInput implements InputMethod {
   private update(consumed: boolean): InputUpdate {
     return {
       buffer: this.buffer,
-      preview: toDevanagari(this.buffer),
+      preview: toDevanagari(this.buffer, { target: this.target }),
       consumed,
     };
   }

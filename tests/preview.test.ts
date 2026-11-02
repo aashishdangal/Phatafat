@@ -323,3 +323,52 @@ describe("B4 — nn as chandrabindu", () => {
     expect(toDevanagari("naya^")).toBe("नयँ");
   });
 });
+
+describe("preview — x follows the target word (rules.md B1)", () => {
+  // x is accepted for both क्ष and छ (A3), so the preview reads it from the
+  // word being typed: the nth x takes the nth क्ष-or-छ in the target.
+  const KSH = `क${HALANT}ष`;
+
+  it("shows छ when the target has छ", () => {
+    expect(toDevanagari("basxa", { target: "बस्छ" })).toBe(`बस${HALANT}छ`);
+    expect(toDevanagari("xa", { target: "छ" })).toBe("छ");
+    expect(toDevanagari("garxa", { target: "गर्छ" })).toBe(`गर${HALANT}छ`);
+  });
+
+  it("shows क्ष when the target has क्ष", () => {
+    expect(toDevanagari("xetri", { target: "क्षेत्री" })).toBe(`${KSH}ेत${HALANT}रि`);
+  });
+
+  it("follows the order when a word has both", () => {
+    expect(toDevanagari("xaxa", { target: "क्षछ" })).toBe(`${KSH}छ`);
+    expect(toDevanagari("xaxa", { target: "छक्ष" })).toBe(`छ${KSH}`);
+  });
+
+  it("keeps क्ष with no target, or more x than the target has", () => {
+    expect(toDevanagari("xa")).toBe(KSH);
+    expect(toDevanagari("xa", { target: null })).toBe(KSH);
+    expect(toDevanagari("xaxa", { target: "छ" })).toBe(`छ${KSH}`);
+  });
+});
+
+describe("preview — sounded-out क्ष: kx, xy (rules.md B1)", () => {
+  const KSH = `क${HALANT}ष`;
+
+  it("shows kx as one क्ष, not क्क्ष", () => {
+    expect(toDevanagari("rakxa", { target: "रक्षा" })).toBe(`र${KSH}`);
+    expect(toDevanagari("rakxa")).toBe(`र${KSH}`);
+  });
+
+  it("drops the y after x when the target has no य there", () => {
+    expect(toDevanagari("rakxya", { target: "रक्षा" })).toBe(`र${KSH}`);
+    expect(toDevanagari("xyamata", { target: "क्षमता" })).toBe(`${KSH}मत`);
+  });
+
+  it("keeps the y when the target has क्ष्य", () => {
+    expect(toDevanagari("lakxya", { target: "लक्ष्य" })).toBe(`ल${KSH}${HALANT}य`);
+  });
+
+  it("counts ksh and chh in the x order too", () => {
+    expect(toDevanagari("kshaxa", { target: "क्षछ" })).toBe(`${KSH}छ`);
+  });
+});
